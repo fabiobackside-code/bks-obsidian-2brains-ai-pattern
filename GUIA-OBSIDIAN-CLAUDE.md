@@ -226,7 +226,7 @@ Todo projeto seu nasce com a **mesma estrutura canônica** (a receita está em `
 
 Agora você distribui o material do Passo 0 pela estrutura, seguindo a **regra dos dois cérebros**: o que é do *produto* vai no repo; o que é *conhecimento seu geral* vai no `knowledge/`. Escopo e entrevistas (cru) vão para `docs/input/`; documentos que o produto precisa "saber" (normas, relatórios-modelo do negócio) vão para `brain/knowledge/` (dentro do repo); código ou protótipos de referência vão para `app/`. (O mapa completo de "o que vai onde" está na seção 8.)
 
-> **Exemplo (bks-marine):** distribuí assim — `Escopo`, `Proposta`, `entrevista.txt` e a `Sintese` foram para `docs/input/`; os **mockups React** do app foram para `app/mockups-app-react/` (referência de UI); e os **relatórios reais do navio POMONE B-100** (mais o modelo de relatório) foram para `brain/knowledge/`, porque são conhecimento do domínio portuário que o produto precisa reproduzir.
+> **Exemplo (bks-marine):** distribuí assim — `Escopo`, `Proposta`, `entrevista.txt` e a `Sintese` foram para `docs/input/`; os **mockups React** do app foram para `app/mockups-app-react/` (referência de UI); e os **relatórios reais de operação (exemplo do cliente)** (mais o modelo de relatório) foram para `brain/knowledge/`, porque são conhecimento do domínio portuário que o produto precisa reproduzir.
 
 ### Passo 4 — Design antes de spec
 
@@ -497,6 +497,45 @@ Detalhes de cada comando e exemplos práticos: ver `MANUAL-COMANDOS.md`.
 
 ---
 
+## 10. Alimentando o cérebro de conhecimento (artigos, vídeos, PDFs, links)
+
+O `_bks-ai/` só decide bem se o `knowledge/` tiver conteúdo — e alimentar essa
+base é um hábito contínuo, não uma tarefa de setup única. O mecanismo já vem
+pronto em `brain/knowledge/`:
+
+1. **Fonte bruta entra em `raw/`**, na subpasta certa — `papers/` (PDFs,
+   artigos acadêmicos), `articles/` (artigos web clipados em Markdown — o
+   [Obsidian Web Clipper](https://obsidian.md/clipper) resolve isso direto do
+   navegador), `videos/` (transcrições), `links/` (bookmarks ainda não
+   processados), `notes/` (suas anotações soltas). `raw/` é **imutável**: uma
+   vez lá, o arquivo não é editado — só a wiki curada evolui a partir dele.
+
+2. **Peça a ingestão** ao Claude Code aberto em `brain/knowledge`:
+   ```
+   ingira raw/papers/nome-do-arquivo.pdf
+   ```
+   Para lote, preencha `tools/batch-ingest.md` (tabela fonte → prioridade) e
+   peça "processe todas as fontes em tools/batch-ingest.md". O agente resume,
+   decide a pasta certa da `wiki/` (`foundations/`, `patterns/`,
+   `architecture/`, `ddd/`, `tdd/`, `sdd/`, `templates/`, `examples/`,
+   `comparisons/`), cria/atualiza a página com frontmatter padronizado, e
+   registra em `wiki/log.md` + `wiki/index.md`. Regras completas de curadoria:
+   `brain/knowledge/CLAUDE.md`.
+
+3. **Busque o que já existe** com `bash brain/knowledge/tools/search.sh
+   "termo"` — o mesmo grep full-text que o `_bks-ai` usa para citar fonte antes
+   de decidir arquitetura (seção 3.2).
+
+4. **Peça curadoria periódica**: "faça um lint da wiki" revisita páginas
+   `draft`, promove para `stable` ou marca pendência, e aponta lacunas.
+
+> Quanto mais o `knowledge/` cresce com fonte própria, mais as decisões do
+> `_bks-ai/` citam **sua** wiki em vez de "lembrar" do treinamento do modelo —
+> é esse hábito, mantido sessão após sessão, que faz o segundo cérebro valer o
+> esforço de manter.
+
+---
+
 ## Apêndice A — Dashboards Dataview (cole numa `HOME.md`)
 
 > Requer o plugin Dataview e frontmatter nas notas (Apêndice B). Repare que specs e ADRs agora
@@ -587,3 +626,41 @@ repo:
 ## ADRs relevantes
 - [[ADR-...]]          (links para o repo do projeto)
 ```
+
+## Apêndice C — Referências para se especializar
+
+Este padrão combina várias práticas que existem de forma independente na
+literatura de engenharia. Para ir além deste guia e entender cada peça na
+fonte original:
+
+**Spec-Driven Development e desenvolvimento agêntico**
+- [GitHub Spec Kit — documentação](https://github.github.com/spec-kit/) e [spec-driven.md](https://github.com/github/spec-kit/blob/main/spec-driven.md) — o toolkit que formalizou publicamente o fluxo spec-driven usado como base conceitual do `/spec` deste guia.
+- [Meet GitHub Spec-Kit (MarkTechPost)](https://www.marktechpost.com/2026/05/08/meet-github-spec-kit-an-open-source-toolkit-for-spec-driven-development-with-ai-coding-agents/) — visão geral acessível do porquê SDD existe.
+
+**Claude Code e agentes (fonte primária: Anthropic)**
+- [Claude Code: Best Practices for Agentic Coding](https://www.anthropic.com/engineering/claude-code-best-practices) — inspira boa parte das convenções de `CLAUDE.md`/comandos usadas aqui.
+- [How Claude Code is used in practice](https://www.anthropic.com/research/claude-code-expertise) — padrões reais de uso.
+- [Effective context engineering for AI agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) — por que memória bem curada supera prompt longo — o argumento por trás do `_bks-ai/memory/`.
+- [How we built our multi-agent research system (resumo por Simon Willison, com link ao original)](https://simonwillison.net/2025/Jun/14/multi-agent-research-system/) e [When to use multi-agent systems (and when not to)](https://claude.com/blog/building-multi-agent-systems-when-and-how-to-use-them) — fundamentam a seção 9 (governança multi-agente) e quando ela vale o custo.
+- [Claude Agent SDK — visão geral](https://code.claude.com/docs/en/agent-sdk/overview) — para ir além do CLI e construir agentes customizados sobre a mesma base.
+
+**Segundo cérebro / PKM**
+- [Building a Second Brain × Zettelkasten](https://zettelkasten.de/posts/building-a-second-brain-and-zettelkasten/) — compara o método PARA (Tiago Forte) com a tradição Zettelkasten (Niklas Luhmann) — a raiz conceitual da separação em dois cérebros deste guia.
+- [Obsidian Web Clipper](https://obsidian.md/clipper) — ferramenta prática para popular `knowledge/raw/articles/` direto do navegador.
+
+**Arquitetura: Hexagonal, DDD, Pipeline, Result**
+- [Hexagonal Architecture — Alistair Cockburn (fonte original)](https://alistair.cockburn.us/hexagonal-architecture) — o artigo que cunhou Ports & Adapters.
+- [Implementing Domain-Driven Design — Vaughn Vernon (O'Reilly)](https://www.oreilly.com/library/view/implementing-domain-driven-design/9780133039900/ch04lev1sec3.html) — referência tática de DDD.
+- [Hexagonal architecture pattern — AWS Prescriptive Guidance](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/hexagonal-architecture.html) — versão aplicada/moderna.
+- [Railway Oriented Programming — Scott Wlaschin](https://fsharpforfunandprofit.com/rop/) — base conceitual do Result Pattern.
+
+**SEDA e TCP**
+- [SEDA: An Architecture for Well-Conditioned, Scalable Internet Services (paper original, SOSP 2001)](https://www.sosp.org/2001/papers/welsh.pdf) — Matt Welsh et al.
+- [Staged event-driven architecture — Wikipedia](https://en.wikipedia.org/wiki/Staged_event-driven_architecture) — resumo acessível.
+- [Volatile and Decentralized: A Retrospective on SEDA](http://matt-welsh.blogspot.com/2010/07/retrospective-on-seda.html) — o próprio autor revisitando o que funcionou/não funcionou uma década depois; leitura essencial antes de aplicar SEDA de verdade.
+- [Message Framing — Stephen Cleary](https://blog.stephencleary.com/2009/04/message-framing.html) e [Length-prefix framing for protocol buffers — Eli Bendersky](https://eli.thegreenplace.net/2011/08/02/length-prefix-framing-for-protocol-buffers) — o problema de framing em TCP e a implementação do padrão length-prefix usado neste stack.
+
+**Qualidade de código**
+- [Object Calisthenics — Jeff Bay (texto original)](https://bolcom.github.io/student-dojo/legacy-code/DevelopersAnonymous-ObjectCalisthenics.pdf) — as 9 regras por trás da disciplina cobrada nas revisões.
+- [Object Calisthenics — William Durand](https://williamdurand.fr/2013/06/03/object-calisthenics/) — aplicação prática regra a regra.
+
