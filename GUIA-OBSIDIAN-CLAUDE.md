@@ -497,37 +497,99 @@ Detalhes de cada comando e exemplos práticos: ver `MANUAL-COMANDOS.md`.
 
 ---
 
-## 10. Alimentando o cérebro de conhecimento (artigos, vídeos, PDFs, links)
+## 10. Alimentando o cérebro de conhecimento (artigos, vídeos, PDFs, HTML, links)
 
 O `_bks-ai/` só decide bem se o `knowledge/` tiver conteúdo — e alimentar essa
-base é um hábito contínuo, não uma tarefa de setup única. O mecanismo já vem
-pronto em `brain/knowledge/`:
+base é um hábito contínuo, não uma tarefa de setup única. Desde 2026-08-14 o
+mecanismo tem um comando dedicado, o **`/ingest`** (`brain/knowledge/.claude/commands/ingest.md`),
+que sabe lidar com cada tipo de fonte de um jeito diferente — porque cada tipo
+tem uma armadilha diferente para alucinação. Rode sempre com o Claude Code
+aberto em `brain/knowledge`.
 
-1. **Fonte bruta entra em `raw/`**, na subpasta certa — `papers/` (PDFs,
-   artigos acadêmicos), `articles/` (artigos web clipados em Markdown — o
-   [Obsidian Web Clipper](https://obsidian.md/clipper) resolve isso direto do
-   navegador), `videos/` (transcrições), `links/` (bookmarks ainda não
-   processados), `notes/` (suas anotações soltas). `raw/` é **imutável**: uma
-   vez lá, o arquivo não é editado — só a wiki curada evolui a partir dele.
+### 10.1 Onde cada tipo de fonte entra em `raw/`
 
-2. **Peça a ingestão** ao Claude Code aberto em `brain/knowledge`:
-   ```
-   ingira raw/papers/nome-do-arquivo.pdf
-   ```
-   Para lote, preencha `tools/batch-ingest.md` (tabela fonte → prioridade) e
-   peça "processe todas as fontes em tools/batch-ingest.md". O agente resume,
-   decide a pasta certa da `wiki/` (`foundations/`, `patterns/`,
-   `architecture/`, `ddd/`, `tdd/`, `sdd/`, `templates/`, `examples/`,
-   `comparisons/`), cria/atualiza a página com frontmatter padronizado, e
-   registra em `wiki/log.md` + `wiki/index.md`. Regras completas de curadoria:
-   `brain/knowledge/CLAUDE.md`.
+```
+raw/
+├── papers/    PDFs, papers acadêmicos
+├── articles/  artigos web — .md (clipados) ou .html (salvos localmente)
+├── videos/    TRANSCRIÇÕES de vídeo (texto), nunca o .mp4/.mov em si
+├── links/     URLs/bookmarks ainda não processados
+├── notes/     suas anotações soltas
+├── assets/    imagens/diagramas que acompanham uma fonte
+└── _inbox/    drop-zone — jogue qualquer coisa aqui sem classificar
+```
 
-3. **Busque o que já existe** com `bash brain/knowledge/tools/search.sh
-   "termo"` — o mesmo grep full-text que o `_bks-ai` usa para citar fonte antes
-   de decidir arquitetura (seção 3.2).
+`raw/` é **imutável por convenção**: o arquivo original nunca é editado — só a
+página curada em `wiki/` evolui a partir dele.
 
-4. **Peça curadoria periódica**: "faça um lint da wiki" revisita páginas
-   `draft`, promove para `stable` ou marca pendência, e aponta lacunas.
+### 10.2 Exemplo de comando por tipo de fonte
+
+**PDF** — já está em `raw/papers/`, ou você acabou de copiar um arquivo pra lá:
+```
+/ingest raw/papers/hexagonal-architecture-cockburn.pdf
+```
+O Claude Code lê o PDF diretamente (nativo, inclusive por intervalo de páginas
+em PDFs longos), resume, decide a pasta certa da `wiki/` e cria a página.
+
+**Artigo em Markdown** (já clipado, ex. via Obsidian Web Clipper):
+```
+/ingest raw/articles/effective-context-engineering.md
+```
+
+**Página HTML salva localmente** — sim, funciona. Salve o `.html` da página em
+`raw/articles/` (Ctrl+S no navegador, "Salvar como → Página HTML") e rode:
+```
+/ingest raw/articles/artigo-salvo.html
+```
+O agente lê o HTML como texto/markup e extrai o conteúdo (ignorando
+menu/rodapé/scripts). Se o HTML vier muito ruidoso para uma boa curadoria, ele
+avisa e sugere salvar como Markdown antes — o Web Clipper dá um resultado bem
+mais limpo que "Salvar página" do navegador.
+
+**Vídeo — só com transcrição, nunca o arquivo de vídeo bruto.** O Claude Code
+não transcreve áudio sozinho. Gere a transcrição primeiro (legendas exportadas
+do YouTube, ou uma ferramenta local como Whisper) e salve como `.txt`/`.md`/`.srt`
+em `raw/videos/`:
+```
+/ingest raw/videos/palestra-seda-matt-welsh-transcricao.md
+```
+Se você apontar um `.mp4` direto, o comando para e pede a transcrição — ele
+não inventa o conteúdo do vídeo a partir do nome do arquivo.
+
+**Link web direto** (você ainda não salvou nada, só tem a URL):
+```
+/ingest https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents
+```
+O agente busca o conteúdo, salva uma cópia em `raw/articles/<slug>.md` com a
+URL no frontmatter (preserva a fonte mesmo se a página sair do ar depois), e
+só então cura para a `wiki/`.
+
+**Lote via tabela** — preencha `tools/batch-ingest.md` (colunas: Tipo | Caminho
+ou URL | Título | Prioridade) e rode:
+```
+/ingest tools/batch-ingest.md
+```
+Processa uma fonte por vez, em ordem de prioridade, e resume no final quantas
+processou e quais falharam (e por quê).
+
+**Pasta inteira, sem classificar nada — a resposta ao "é possível um `/ingest`
+pra pasta"**: sim. Jogue qualquer mistura de PDFs, `.md`, `.html`, transcrições
+e listas de links em `raw/_inbox/` e rode:
+```
+/ingest raw/_inbox/
+```
+O agente lista os arquivos, classifica cada um pela extensão/conteúdo, MOVE
+para a subpasta certa de `raw/` (nunca duplica), ingere cada um pela regra do
+seu tipo, e resume ao final quantos de cada tipo processou. A `_inbox/` é só
+um ponto de entrada — fica vazia depois.
+
+### 10.3 Depois de ingerir
+
+- **Busque o que já existe**: `bash brain/knowledge/tools/search.sh "termo"` —
+  o mesmo grep full-text que o `_bks-ai` usa para citar fonte antes de decidir
+  arquitetura (seção 3.2).
+- **Curadoria periódica**: peça "faça um lint da wiki" — revisita páginas
+  `draft`, promove para `stable` ou marca pendência, aponta lacunas.
 
 > Quanto mais o `knowledge/` cresce com fonte própria, mais as decisões do
 > `_bks-ai/` citam **sua** wiki em vez de "lembrar" do treinamento do modelo —

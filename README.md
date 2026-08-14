@@ -181,59 +181,45 @@ repos/backside/bks-marine/  exemplo de esqueleto vazio de projeto
 - [Object Calisthenics — Jeff Bay (texto original)](https://bolcom.github.io/student-dojo/legacy-code/DevelopersAnonymous-ObjectCalisthenics.pdf) — as 9 regras que fundamentam a disciplina de qualidade cobrada nas revisões.
 - [Object Calisthenics — William Durand](https://williamdurand.fr/2013/06/03/object-calisthenics/) — aplicação prática regra a regra, com exemplos.
 
-## 9. Como alimentar seu cérebro de conhecimento (artigos, vídeos, PDFs, links)
+## 9. Como alimentar seu cérebro de conhecimento (PDF, HTML, vídeo, link, lote)
 
-O `brain/knowledge/` já vem com o mecanismo de ingestão pronto — só falta você
-colocar material. Fluxo:
+O `brain/knowledge/` vem com um comando dedicado para isso, o **`/ingest`**
+(`brain/knowledge/.claude/commands/ingest.md`), que sabe lidar com cada tipo
+de fonte de um jeito diferente — cada tipo tem uma armadilha diferente para
+alucinação (PDF é direto; vídeo exige transcrição prévia; HTML pode vir
+ruidoso; link precisa virar cópia local antes de virar página). O guia
+completo, com o passo a passo de cada tipo, está na **seção 10 do
+`GUIA-OBSIDIAN-CLAUDE.md`** — aqui vai o resumo com exemplo de comando:
 
-1. **Jogue a fonte bruta em `brain/knowledge/raw/`**, na subpasta certa:
-   - `raw/papers/` — PDFs e papers acadêmicos.
-   - `raw/articles/` — artigos web, de preferência já "clipados" em Markdown
-     (extensões como o [Obsidian Web Clipper](https://obsidian.md/clipper) ou
-     qualquer leitor que exporte para `.md` funcionam bem aqui).
-   - `raw/videos/` — transcrições de vídeo (YouTube, palestras, cursos). Gere a
-     transcrição com a própria ferramenta da plataforma ou um serviço de
-     transcrição, e salve o texto como `.md`/`.txt`.
-   - `raw/links/` — listas de links/bookmarks ainda não processados.
-   - `raw/notes/` — suas anotações soltas e observações pessoais.
-   - `raw/assets/` — imagens e diagramas que acompanham uma fonte.
+```
+/ingest raw/papers/artigo.pdf                → PDF
+/ingest raw/articles/artigo.md                → artigo já em Markdown
+/ingest raw/articles/pagina-salva.html        → página HTML salva localmente (sim, funciona)
+/ingest raw/videos/palestra-transcricao.md    → vídeo — precisa ser a TRANSCRIÇÃO, não o .mp4
+/ingest https://exemplo.com/artigo            → link direto — o agente busca, salva cópia e cura
+/ingest tools/batch-ingest.md                 → lote via tabela (várias fontes, uma por vez)
+/ingest raw/_inbox/                           → pasta inteira sem classificar nada
+```
 
-   `raw/` é **imutável por convenção**: uma vez que uma fonte entra ali, ela não
-   é editada — só a wiki curada é que evolui a partir dela.
+A última linha responde a uma dúvida comum: **sim, dá para jogar tudo
+misturado numa pasta e pedir para processar em lote.** Jogue PDFs, `.md`,
+`.html`, transcrições e listas de link em `raw/_inbox/` e rode `/ingest
+raw/_inbox/` — o agente classifica cada arquivo pela extensão/conteúdo, move
+para a subpasta certa (`papers/`, `articles/`, `videos/`, `links/`), ingere
+cada um pela regra do seu tipo, e resume ao final quantos processou.
 
-2. **Peça a ingestão ao Claude Code**, com o terminal aberto em
-   `brain/knowledge` (ou apontando pro caminho completo):
-   ```
-   ingira raw/papers/nome-do-arquivo.pdf
-   ```
-   ou, para um lote inteiro, preencha `tools/batch-ingest.md` (uma tabela de
-   fonte → prioridade) e peça:
-   ```
-   processe todas as fontes em tools/batch-ingest.md
-   ```
-   O agente lê a fonte, resume, decide em qual pasta da `wiki/` ela se encaixa
-   (`foundations/`, `patterns/`, `architecture/`, `ddd/`, `tdd/`, `sdd/`,
-   `templates/`, `examples/`, `comparisons/`), cria ou atualiza a página com
-   frontmatter YAML padronizado, e registra a operação em `wiki/log.md` e
-   `wiki/index.md`. As regras completas de como o agente deve curar estão em
-   `brain/knowledge/CLAUDE.md`.
+O único tipo que exige um passo manual antes é **vídeo**: o Claude Code não
+transcreve áudio sozinho, então uma transcrição (legenda exportada, ou uma
+ferramenta local como Whisper) precisa existir como `.txt`/`.md`/`.srt` em
+`raw/videos/` antes do `/ingest`.
 
-3. **Links soltos sem tempo de processar agora**: cole em `raw/links/`, um por
-   linha ou numa tabela — viram fila para uma ingestão em lote depois.
+Depois de ingerido, busque com `bash brain/knowledge/tools/search.sh "termo"`
+e peça curadoria periódica com "faça um lint da wiki".
 
-4. **Busque o que já foi ingerido** a qualquer momento com
-   `bash brain/knowledge/tools/search.sh "termo"` — é o `grep` full-text sobre a
-   wiki curada, o mesmo mecanismo que o `_bks-ai` usa para citar fonte antes de
-   decidir arquitetura (seção 3.2 do `GUIA-OBSIDIAN-CLAUDE.md`).
-
-5. **Peça curadoria periódica**: de tempos em tempos, peça "faça um lint da
-   wiki" — o agente revisita páginas `draft`, verifica se ainda fazem sentido,
-   promove para `stable` ou marca para revisão, e sugere o que falta.
-
-> Dica prática: quanto mais você alimenta o `knowledge/`, mais as decisões do
-> `_bks-ai/` ficam ancoradas em fonte própria — em vez do agente decidir com o
-> que "lembra" do treinamento, ele cita a página da sua wiki. É esse hábito,
-> mantido ao longo do tempo, que faz o segundo cérebro compensar o esforço.
+> Quanto mais o `knowledge/` cresce com fonte própria, mais as decisões do
+> `_bks-ai/` citam **sua** wiki em vez de "lembrar" do treinamento do modelo —
+> é esse hábito, mantido ao longo do tempo, que faz o segundo cérebro compensar
+> o esforço.
 
 ## 10. Origem e licença
 
