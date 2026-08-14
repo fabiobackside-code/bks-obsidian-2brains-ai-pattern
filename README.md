@@ -208,6 +208,21 @@ raw/_inbox/` — o agente classifica cada arquivo pela extensão/conteúdo, move
 para a subpasta certa (`papers/`, `articles/`, `videos/`, `links/`), ingere
 cada um pela regra do seu tipo, e resume ao final quantos processou.
 
+**Exemplo rápido de lote via tabela** (`/ingest tools/batch-ingest.md`) —
+preencha `tools/batch-ingest.md` com as fontes, tipo e prioridade:
+
+```markdown
+| # | Type | Path or URL                                | Title                        | Priority |
+|---|------|---------------------------------------------|-------------------------------|----------|
+| 1 | pdf  | raw/papers/hexagonal-architecture.pdf        | Hexagonal Architecture         | high     |
+| 2 | link | https://fsharpforfunandprofit.com/rop/       | Railway Oriented Programming   | medium   |
+```
+
+e rode `/ingest tools/batch-ingest.md` — o agente processa em ordem de
+prioridade e devolve um resumo linha a linha (`✓ fonte → página criada`, ou
+`✗ fonte → falhou: motivo`). Passo a passo completo, com mais tipos de fonte
+na mesma tabela e o formato exato do resumo: seção 10 do `GUIA-OBSIDIAN-CLAUDE.md`.
+
 O único tipo que exige um passo manual antes é **vídeo**: o Claude Code não
 transcreve áudio sozinho, então uma transcrição (legenda exportada, ou uma
 ferramenta local como Whisper) precisa existir como `.txt`/`.md`/`.srt` em
