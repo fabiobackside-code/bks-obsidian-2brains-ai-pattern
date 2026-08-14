@@ -19,6 +19,10 @@ Uso:
 - Se não for possível extrair conteúdo real (PDF protegido, vídeo sem
   transcrição disponível, link bloqueado/pago), PARE e diga isso —
   nunca invente o conteúdo a partir do nome do arquivo ou da URL.
+- **Idempotência:** se a fonte já tem página correspondente na wiki (mesmo
+  arquivo/URL registrado em `wiki/log.md`), NÃO reprocesse por conta própria —
+  avise que já existe e pergunte se é para atualizar mesmo assim. Só force
+  reprocessamento se o usuário pedir explicitamente.
 
 ## Passo a passo por tipo de fonte
 
@@ -49,10 +53,16 @@ transcrição (ex. Whisper) — nunca invente o conteúdo do vídeo a partir do
 nome do arquivo ou da descrição.
 
 **Lote via tabela** (`tools/batch-ingest.md`) — leia a tabela
-(Tipo | Caminho ou URL | Título | Prioridade). Processe uma fonte por vez, em
-ordem de prioridade (high → medium → low), cada uma seguindo a regra do seu
-tipo acima. Ao final, resuma quantas fontes de cada prioridade foram
-processadas e quais falharam (e por quê).
+(# | Type | Path or URL | Title | Priority). Processe uma fonte por vez, na
+ordem `high` → `medium` → `low`, cada uma seguindo a regra do seu tipo acima
+(`pdf`, `article` = markdown/html local, `video` = transcrição, `link` = URL).
+Ao final, imprima um resumo linha a linha no formato:
+```
+✓ [prioridade] <arquivo/URL de origem> → <página(s) de wiki/ criada(s) ou atualizada(s)>
+```
+usando `✗ [prioridade] <origem> → falhou: <motivo>` para as que falharem —
+uma falha não interrompe o processamento das demais linhas da tabela. Feche
+confirmando que `wiki/index.md` e `wiki/log.md` foram atualizados.
 
 **Pasta drop-zone** (`raw/_inbox/`, ou outra pasta que você indicar) — liste
 todos os arquivos. Para cada um: identifique o tipo pela extensão/conteúdo

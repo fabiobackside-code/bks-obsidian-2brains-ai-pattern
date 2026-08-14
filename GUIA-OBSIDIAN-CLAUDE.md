@@ -564,13 +564,63 @@ O agente busca o conteúdo, salva uma cópia em `raw/articles/<slug>.md` com a
 URL no frontmatter (preserva a fonte mesmo se a página sair do ar depois), e
 só então cura para a `wiki/`.
 
-**Lote via tabela** — preencha `tools/batch-ingest.md` (colunas: Tipo | Caminho
-ou URL | Título | Prioridade) e rode:
+**Lote via tabela** — o jeito de processar várias fontes de tipos diferentes
+numa passada só, com prioridade explícita, sem digitar um `/ingest` por fonte.
+
+*Passo 1 — preencha `tools/batch-ingest.md`.* É uma tabela markdown comum:
+`Tipo` (`pdf` | `article` | `video` | `link`), `Caminho ou URL` (relativo a
+`brain/knowledge/`, ou uma URL completa), `Título` (opcional, ajuda o agente a
+nomear a página) e `Prioridade` (`high` | `medium` | `low` — define a ordem de
+processamento, não se algo é ou não processado). Exemplo real, misturando os
+quatro tipos:
+
+```markdown
+# Batch Ingest List
+
+## Sources
+
+| # | Type  | Path or URL                                          | Title (optional)                  | Priority |
+|---|-------|-------------------------------------------------------|------------------------------------|----------|
+| 1 | pdf   | raw/papers/hexagonal-architecture-cockburn.pdf         | Hexagonal Architecture (Cockburn)  | high     |
+| 2 | video | raw/videos/palestra-seda-welsh-transcricao.md          | Retrospectiva SEDA — Matt Welsh    | high     |
+| 3 | link  | https://fsharpforfunandprofit.com/rop/                 | Railway Oriented Programming       | medium   |
+| 4 | pdf   | raw/papers/object-calisthenics-jeff-bay.pdf            | Object Calisthenics — Jeff Bay     | low      |
+
+## Instructions for this batch
+Foco em arquitetura e qualidade de código — ligar cada fonte às páginas já
+existentes em wiki/architecture/ e wiki/patterns/ quando fizer sentido.
+```
+
+*Passo 2 — rode o comando* (Claude Code aberto em `brain/knowledge`):
 ```
 /ingest tools/batch-ingest.md
 ```
-Processa uma fonte por vez, em ordem de prioridade, e resume no final quantas
-processou e quais falharam (e por quê).
+
+*O que esperar como resultado* — o agente processa **uma fonte por vez**, em
+ordem de prioridade (`high` → `medium` → `low`), cada uma seguindo a regra do
+seu tipo (seções acima: PDF é lido direto, vídeo exige que o arquivo já seja a
+transcrição, link vira cópia local em `raw/articles/` antes de virar página).
+No final ele resume algo como:
+
+```
+Processadas 4/4 fontes:
+✓ [high]   hexagonal-architecture-cockburn.pdf → wiki/architecture/hexagonal-architecture.md (criada)
+✓ [high]   palestra-seda-welsh-transcricao.md  → wiki/patterns/seda.md (atualizada — nova seção "lições da retrospectiva")
+✓ [medium] fsharpforfunandprofit.com/rop        → raw/articles/railway-oriented-programming.md (cópia salva) → wiki/patterns/result-pattern.md (criada)
+✓ [low]    object-calisthenics-jeff-bay.pdf     → wiki/foundations/object-calisthenics.md (criada)
+
+wiki/index.md e wiki/log.md atualizados.
+```
+
+Se alguma fonte falhar (PDF corrompido, link fora do ar, vídeo sem
+transcrição), ela aparece no resumo com `✗` e o motivo — as demais da tabela
+continuam sendo processadas normalmente, não travam por causa de uma só.
+
+> A tabela não precisa ser esvaziada depois de processada — você pode manter
+> um histórico nela, ou apagar as linhas já feitas e deixar só o que ainda
+> falta. O `/ingest` não reprocessa por conta própria uma fonte que já virou
+> página com o mesmo nome; se quiser forçar atualização, peça explicitamente
+> ("reprocesse a linha 2 mesmo já tendo página").
 
 **Pasta inteira, sem classificar nada — a resposta ao "é possível um `/ingest`
 pra pasta"**: sim. Jogue qualquer mistura de PDFs, `.md`, `.html`, transcrições
