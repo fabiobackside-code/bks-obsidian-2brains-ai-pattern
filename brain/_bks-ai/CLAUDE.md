@@ -28,7 +28,7 @@ trabalho → mora aqui."**
 6. Idioma: PT-BR nas conversas e docs; código/identificadores em inglês.
 7. Implementação segue o protocolo LOOP-4 (.claude/commands/loop.md).
 8. Projeto Alto/Crítico (ver ficha em projects/): mudança em área sensível do
-   manifesto (`{repo}/.claude/multiagente.md`) exige /revisao (agente reviewer,
+   manifesto (`{repo}/.claude/multiagente.md`) exige /review (agente reviewer,
    invocação separada) ANTES de considerar a entrega pronta.
 
 ## Onde as coisas ficam agora

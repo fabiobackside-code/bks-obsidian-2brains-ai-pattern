@@ -121,21 +121,25 @@ após sessão.
 ## 7. Estrutura e como usar
 
 ```
+CLAUDE.md                   boot do Claude Code na raiz (aponta pro CONTEXT.md)
 CONTEXT.md                  ponto de entrada
 GUIA-OBSIDIAN-CLAUDE.md      material completo — conceito + passo a passo + referências
 MANUAL-COMANDOS.md          referência rápida de todo comando
+.claude/commands/            /brain /new-project /canonize /prd /review — rodam AQUI, na raiz
 brain/
 ├── knowledge/                cérebro de conhecimento (wiki de estudo, vazio)
 └── _bks-ai/                    cérebro de trabalho (workbench)
     ├── CLAUDE.md                regras do workbench
     ├── memory/                    perfil, premissas, padrões (editáveis)
-    ├── templates/                   FEAT, ADR, REPO-CLAUDE, project-structure, manifesto
+    ├── templates/                   FEAT, ADR, REPO-CLAUDE, project-structure,
+    │                                  PROJECT-README, manifesto
     ├── agents/                        builder/reviewer/planner/scribe
     ├── references/                      checklist de revisão crítica
-    ├── projects/                          fichas de projeto (vazio)
-    └── .claude/commands/                    /brain /spec /arch /loop /save
-                                                /novo-projeto /revisao
+    └── projects/                          fichas de projeto (vazio)
 repos/backside/bks-marine/  exemplo de esqueleto vazio de projeto
+                             (specs/, decisions/, outputs/, docs/{input/{scope,interviews,
+                              research,assets},design,canonical,prompts,history} rodam
+                              /spec /arch /loop /save AQUI DENTRO)
 ```
 
 1. Copie esta pasta para a sua máquina e abra como vault no Obsidian.
@@ -143,8 +147,9 @@ repos/backside/bks-marine/  exemplo de esqueleto vazio de projeto
    explicado, o passo a passo e as referências.
 3. Personalize `brain/_bks-ai/memory/user_profile.md` e `bks-premises.md` com o
    seu próprio perfil e arquitetura de preferência.
-4. Rode `/novo-projeto <nome> <categoria>` (Claude Code aberto em
-   `brain/_bks-ai`) para criar seu primeiro projeto real.
+4. Rode `/new-project <nome> <categoria>` (Claude Code aberto na **raiz deste
+   vault**) para criar seu primeiro projeto real — depois traga material de
+   pesquisa para `docs/input/` e rode `/canonize` → `/prd` → `/spec`.
 
 ## 8. Referências — para se especializar em cada peça
 
@@ -182,6 +187,13 @@ repos/backside/bks-marine/  exemplo de esqueleto vazio de projeto
 - [Object Calisthenics — William Durand](https://williamdurand.fr/2013/06/03/object-calisthenics/) — aplicação prática regra a regra, com exemplos.
 
 ## 9. Como alimentar seu cérebro de conhecimento (PDF, HTML, vídeo, link, lote)
+
+> **Escopo:** este `/ingest` e o `brain/knowledge/` descritos aqui são o SEU cérebro de
+> conhecimento técnico pessoal (Hexagonal, DDD, SOLID, TXC, etc.) — compartilhado entre todos
+> os seus projetos. Conhecimento específico de UM projeto (normas do domínio, artigos que só
+> aquele produto usa, entrevistas com especialista) não entra aqui: vai para
+> `repos/{categoria}/{projeto}/brain/` — dentro do repo daquele projeto, não no workbench. Mapa
+> completo de onde cada tipo de material entra: seção 8 do `GUIA-OBSIDIAN-CLAUDE.md`.
 
 O `brain/knowledge/` vem com um comando dedicado para isso, o **`/ingest`**
 (`brain/knowledge/.claude/commands/ingest.md`), que sabe lidar com cada tipo
@@ -240,7 +252,7 @@ e peça curadoria periódica com "faça um lint da wiki".
 
 O conceito de pasta de workbench isolada foi inspirado em
 [obsidian-ai-workbench](https://github.com/RenzoTakada/obsidian-ai-workbench)
-(RenzoTakada). A camada de governança multi-agente (`agents/`, `/revisao`,
+(RenzoTakada). A camada de governança multi-agente (`agents/`, `/review`,
 manifesto por projeto) foi adaptada de
 [bks-multiagent-skill](https://github.com/DiegoAmorimDev/bks-multiagent-skill)
 (DiegoAmorimDev, MIT). O restante — a integração do método bks-sdd, a regra dos

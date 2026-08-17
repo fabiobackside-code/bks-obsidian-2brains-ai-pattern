@@ -1,10 +1,17 @@
 # Premissas de Codificação BKS (fonte de verdade)
 
-Este arquivo governa COMO o gêmeo gera código. Autoridade, nesta ordem:
+Este arquivo governa COMO o gêmeo gera código — é conhecimento sobre MÉTODO,
+compartilhado entre todos os projetos. Nunca deve citar decisão ou nome real
+de um projeto como parte da regra em si; exemplos de projeto real (quando
+ajudam a ilustrar) vêm só ao final de cada ponto, entre parênteses.
+Autoridade, nesta ordem:
 1. Skills BKS globais: `bks-dotnet-solutions`, `bks-sdd`, `bks-c4-diagrams`,
    `bks-typescript-backend` (prescritivas, conduzem entrevista antes de gerar).
-2. Exemplares reais em `../skills-bks/` (NQuantic: nqsdk, banking-domain, w3dk).
-3. Wiki de conhecimento em `../../knowledge/wiki/` (fundamentos e trade-offs).
+2. Exemplares reais de aplicação — cada projeto guarda os seus em
+   `repos/{cat}/{proj}/brain/methodology/` (ex.: `repos/w3/nquantic/brain/methodology/`
+   tem as skills de domínio bancário aplicadas). Consulte o do projeto atual.
+3. Wiki de conhecimento em `../../knowledge/wiki/` (fundamentos e trade-offs,
+   sempre agnóstica de projeto).
 
 ## Princípio-mestre: pragmatismo token-aware
 Cada arquivo extra é token extra; cada indireção é ruído que compete com a
@@ -17,12 +24,14 @@ barato que navegar abstração que tentou adivinhar o futuro (YAGNI).
 - **Hexagonal real, não ritualística:** domínio referencia só `System.*`;
   infra entra por Porta. Sem camadas/arquivos que não carregam valor.
 - **TXC (Transaction Context):** estado transacional em um `record` imutável
-  que flui pela pipeline; a aplicação lê, não muta. Ver
-  `wiki/patterns/txc-transaction-context.md`.
+  que flui pela pipeline; a aplicação lê, não muta. Conceito geral em
+  `wiki/patterns/txc-transaction-context.md`; aplicação concreta de cada
+  projeto fica no `brain/methodology/` do repo dele.
 - **Pipeline explícito:** Validação → Idempotência → Enriquecimento →
   Processamento → PósProcessamento. **NUNCA MediatR** — orquestração explícita.
-- **Result Pattern:** operações retornam `NqResultado<T>`/equivalente;
-  exceptions de negócio não escapam da pipeline.
+- **Result Pattern:** operações retornam um tipo `Result<T>` (ou o equivalente
+  que o projeto definir — ex.: `NqResultado<T>` no NQuantic); exceptions de
+  negócio não escapam da pipeline.
 - Observabilidade embutida nos estágios (spans automáticos, sem `Activity` à mão).
 
 ## DDD e Object Calisthenics: por julgamento, não por ritual

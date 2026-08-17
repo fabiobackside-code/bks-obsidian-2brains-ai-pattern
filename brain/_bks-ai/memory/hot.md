@@ -10,4 +10,4 @@
 (nenhum ainda)
 
 ## Próximo passo
-(defina seu primeiro projeto com `/novo-projeto`)
+(defina seu primeiro projeto com `/new-project`, rodado na raiz do vault)

@@ -58,6 +58,36 @@ specs e decisões de projeto para dentro do repositório de cada produto (2026-0
 seção 8), e incorporou **governança multi-agente** (seção 9). Mesmo ponto de partida,
 sistema seu, mais maduro.
 
+### 1.1 O que é seu, o que é do projeto (não confunda) — leia antes de alimentar conhecimento
+
+Pergunta que vale fixar antes de jogar qualquer material no cérebro: **isso é meu padrão de
+desenvolvimento, ou é conhecimento do domínio de um projeto específico?** São dois lugares
+diferentes, e a regra já existe (seção 8), mas vale destacar aqui porque é fácil errar:
+
+- **`brain/knowledge/wiki/`** (workbench) — **só o SEU conhecimento técnico de programação**:
+  Hexagonal, DDD, TXC, Object Calisthenics, SOLID, SEDA, TCP sockets, .NET — os padrões que
+  você usa em QUALQUER projeto. Isso é seu, evolui com você, independe de cliente. É por isso
+  que aparece igual no NQuantic e no bks-marine: não é "padrão do NQuantic", é seu padrão
+  *aplicado* no NQuantic (por isso a página `txc-transaction-context.md` na wiki é genérica, e
+  o detalhe concreto de cada projeto — ex.: a classe `NqContextoTransacional` do NQuantic — fica
+  em `repos/{cat}/{proj}/brain/methodology/`, nunca na wiki).
+- **`repos/{cat}/{proj}/brain/` e `docs/`** (dentro do repo) — o conhecimento de **domínio** que
+  aquele produto precisa: normas, relatórios-modelo, artigos científicos, entrevistas,
+  escopo. Isso é do projeto, não seu — quando o projeto muda ou acaba, esse conhecimento fica
+  com ele, não contamina os outros.
+
+**Exemplo real (bks-marine):** os relatórios-modelo do domínio portuário e o manual técnico do
+porto moram inteiros em `repos/backside/bks-marine/brain/` e `docs/` — nada disso está na sua
+wiki pessoal. Se amanhã você parar o bks-marine, sua wiki de Hexagonal/DDD/TXC não perde nada, e
+o conhecimento de domínio portuário não voa para outro projeto por engano.
+
+**Armadilha que já aconteceu aqui e vale vigiar:** projeto que muda de nome (ex.: uma pasta
+`projeto-antigo/` que devia ter virado `projeto-novo/` num rename que ficou pela metade) pode deixar **duas
+cópias do mesmo projeto** coexistindo, cada uma parecendo um projeto à parte. Isso não é
+confundir "seu conhecimento" com "conhecimento do projeto" — é um projeto duplicado. Sinal de
+alerta: duas pastas em `repos/{cat}/` com o mesmo material (mesmos PDFs, mesmos `.md`) e nomes
+parecidos. Se acontecer, resolva o rename até o fim antes de seguir.
+
 ---
 
 ## 2. Ficar fluente no Obsidian (a parte que faltava)
@@ -159,9 +189,10 @@ Obsidian **não** roda o Claude. Ele só mostra o resultado bonito e navegável.
 Desde 2026-08-13, specs e decisões de projeto moram **dentro do repo do projeto**, não no
 workbench — isso muda um pouco onde você abre cada comando:
 
-- **`/brain`, `/novo-projeto`, `/revisao`**: abra o Claude Code em
-  `D:\Fabio\2b-projects\brain\_bks-ai`.
-  É aqui que vivem memória, templates, agentes e comandos.
+- **`/brain`, `/new-project`, `/canonize`, `/prd`, `/review`**: abra o Claude Code na **raiz do
+  vault**, `D:\Fabio\2b-projects` — é o ponto de entrada único desde 2026-08-17. Esses comandos
+  vivem em `.claude/commands/` da própria raiz e leem `brain/_bks-ai/` (memória, templates,
+  agentes) por caminho relativo/absoluto.
 
 - **`/spec`, `/arch`, `/loop`**: abra o Claude Code **na raiz do repositório do projeto**, ex.
   `D:\Fabio\2b-projects\repos\backside\bks-marine`.
@@ -197,11 +228,11 @@ O ponto de partida de qualquer projeto é entender **o que** você vai construir
 
 ### Passo 1 — Criar o esqueleto do projeto
 
-Todo projeto seu nasce com a **mesma estrutura canônica** (a receita está em `brain/_bks-ai/templates/project-structure.md`). Isso garante que todo projeto tenha os mesmos lugares para código, domínio, specs e documentação — você nunca fica se perguntando "onde ponho isso?". Em vez de digitar um prompt longo, use o comando **`/novo-projeto`** (Claude Code aberto em `brain/_bks-ai`): basta passar o **nome** e a **categoria** (backside | w3 | private). Ele cria a árvore e já gera todo o wiring (CLAUDE.md, README, HOW-TO-WORK, .gitignore), as pastas de specs/decisions e a ficha do projeto.
+Todo projeto seu nasce com a **mesma estrutura canônica** (a receita está em `brain/_bks-ai/templates/project-structure.md`). Isso garante que todo projeto tenha os mesmos lugares para código, domínio, specs e documentação — você nunca fica se perguntando "onde ponho isso?". Em vez de digitar um prompt longo, use o comando **`/new-project`** — Claude Code aberto na **raiz do vault** (`D:\Fabio\2b-projects`), não mais dentro de `_bks-ai`: basta passar o **nome** e a **categoria** (backside | w3 | private). Ele cria a árvore e já gera todo o wiring (CLAUDE.md, README com exemplos de prompt, HOW-TO-WORK, .gitignore), as pastas de specs/decisions/outputs e a ficha do projeto.
 
 > **Exemplo (bks-marine):** o comando é uma linha só —
 > ```
-> /novo-projeto bks-marine backside
+> /new-project bks-marine backside
 > ```
 > e ele monta:
 > ```
@@ -210,7 +241,13 @@ Todo projeto seu nasce com a **mesma estrutura canônica** (a receita está em `
 > ├── brain/{knowledge,methodology}       (domínio do produto)
 > ├── specs/{features,tests,tasks}          (specs bks-sdd DESTE projeto)
 > ├── decisions/                              (ADRs DESTE projeto)
-> ├── docs/{canonical,design,input,prompts,history}
+> ├── outputs/                                  (entregáveis: ARCH, apresentações, docs)
+> ├── docs/
+> │   ├── input/{scope,interviews,research,assets}   (material bruto, por tipo)
+> │   ├── design/                                       (sua bancada de análise)
+> │   ├── canonical/                                       (CONTEXT.md + PRD, via /canonize e /prd)
+> │   ├── prompts/                                           (prompt de cada /canonize)
+> │   └── history/                                            (versões superadas)
 > ├── CLAUDE.md  README.md  HOW-TO-WORK.md  .gitignore
 > brain/_bks-ai/projects/bks-marine.md   (ficha do projeto, no workbench)
 > ```
@@ -224,35 +261,56 @@ Todo projeto seu nasce com a **mesma estrutura canônica** (a receita está em `
 
 ### Passo 3 — Trazer o material bruto para os lugares certos
 
-Agora você distribui o material do Passo 0 pela estrutura, seguindo a **regra dos dois cérebros**: o que é do *produto* vai no repo; o que é *conhecimento seu geral* vai no `knowledge/`. Escopo e entrevistas (cru) vão para `docs/input/`; documentos que o produto precisa "saber" (normas, relatórios-modelo do negócio) vão para `brain/knowledge/` (dentro do repo); código ou protótipos de referência vão para `app/`. (O mapa completo de "o que vai onde" está na seção 8.)
+Agora você distribui o material do Passo 0 pela estrutura, seguindo a **regra dos dois cérebros**: o que é do *produto* vai no repo; o que é *conhecimento seu geral* vai no `knowledge/`. Dentro do repo, o material bruto de pesquisa é sempre classificado por tipo em `docs/input/`:
 
-> **Exemplo (bks-marine):** distribuí assim — `Escopo`, `Proposta`, `entrevista.txt` e a `Sintese` foram para `docs/input/`; os **mockups React** do app foram para `app/mockups-app-react/` (referência de UI); e os **relatórios reais de operação (exemplo do cliente)** (mais o modelo de relatório) foram para `brain/knowledge/`, porque são conhecimento do domínio portuário que o produto precisa reproduzir.
+| Você tem isto | Coloque em |
+|---|---|
+| Proposta, escopo, RFP do cliente | `docs/input/scope/` |
+| Entrevista, transcrição, respostas de formulário | `docs/input/interviews/` |
+| Artigo, benchmark, pesquisa externa ainda não classificada | `docs/input/research/` |
+| Print, mockup, logo, imagem de referência | `docs/input/assets/` |
+| Conhecimento de domínio que o PRODUTO precisa saber (RAG) | `brain/knowledge/` (dentro do repo) |
+| Código ou protótipo de referência | `app/` |
 
-### Passo 4 — Design antes de spec
+> **Exemplo (bks-marine):** distribuí assim — `Escopo_Sistema.docx` e `Proposta` foram para `docs/input/scope/`; `entrevista.txt` e a `Sintese` para `docs/input/interviews/`; os **mockups React** do app foram para `app/mockups-app-react/` (referência de UI); e os **relatórios reais de operação** (mais o modelo de relatório) foram para `brain/knowledge/`, porque são conhecimento do domínio portuário que o produto precisa reproduzir.
 
-Antes de especificar features, você pensa a **arquitetura macro** e lista as **decisões em aberto**. Essa é a bancada de trabalho em `docs/design/`: um `escopo-produto.md` (a síntese do que o produto faz), um `arquitetura-macro.md` (bounded contexts, agregados, pipeline, o que é assíncrono) e um `decisoes-abertas.md` (tudo que ainda não está decidido). Quando uma decisão **firma** (ex.: a stack), ela sai daqui e vira um **ADR** em `decisions/` **do próprio repo** — decisão registrada não se rediscute. O escopo já consolidado vai para `docs/canonical/`.
+### Passo 4 — Design antes de consolidar
+
+Antes de consolidar o contexto, você pensa a **arquitetura macro** e lista as **decisões em aberto**. Essa é a bancada de trabalho em `docs/design/`: um `escopo-produto.md` (a síntese do que o produto faz), um `arquitetura-macro.md` (bounded contexts, agregados, pipeline, o que é assíncrono) e um `decisoes-abertas.md` (tudo que ainda não está decidido). Quando uma decisão **firma** (ex.: a stack), ela sai daqui e vira um **ADR** em `decisions/` **do próprio repo** — decisão registrada não se rediscute.
 
 > **Exemplo (bks-marine):** o `arquitetura-macro.md` já identificou os **4 bounded contexts** (Identidade & Acesso, Cadastros, Operações Portuárias — o CORE — e Relatórios), com `Operacao` como aggregate root e o **envio de fotos** marcado como candidato a estágio **SEDA** (assíncrono, tolera 24h). O `decisoes-abertas.md` listou D1–D12; e na entrevista você **firmou** três: stack **.NET 10 + Supabase**, **auth próprio no .NET** e **login por e-mail** — essas viram um ADR no próximo `/save`, dentro de `repos/backside/bks-marine/decisions/`.
 
-### Passo 5 — `/brain` (carregar o contexto da sessão)
+### Passo 5 — `/canonize` (consolidar em contexto único)
 
-Sempre que você senta para trabalhar, a primeira coisa é rodar `/brain` (Claude Code aberto em `brain/_bks-ai`). Ele lê seu perfil, o índice de memória, o contexto quente (`hot.md`) e a última nota de sessão, e te devolve em ~5 linhas quem você é, em que estava trabalhando e qual o próximo passo. É o que elimina a "amnésia" entre sessões e evita que você reexplique tudo.
+Com material suficiente em `docs/input/` e `docs/design/`, rode `/canonize` — raiz do vault (informando o projeto) ou já dentro do repo. Ele lê tudo, monta `docs/canonical/CONTEXT.md` (propósito, personas, escopo, decisões já fixadas com fonte, glossário) e marca com `> [!uncertain]` toda divergência ou lacuna — nunca inventa para fechar buraco. Se já existir um `CONTEXT.md` anterior, a versão velha é arquivada em `docs/history/` antes de sobrescrever, e o novo registra "o que mudou desde vN". Rodar `/canonize` de novo depois de trazer material novo é normal — não é um comando de "uma vez só".
+
+> **Exemplo (bks-marine):** `/canonize` leria `docs/input/scope/` + `docs/input/interviews/` + `docs/design/arquitetura-macro.md` e geraria `docs/canonical/CONTEXT.md` v1, citando a fonte de cada decisão fixada (stack, auth, perfis) e talvez uma pergunta em aberto tipo "o relatório em PDF sai automático ao fechar a operação, ou sob demanda?".
+
+### Passo 6 — `/prd` (gerar o PRD a partir do canônico)
+
+Com o `CONTEXT.md` revisado, rode `/prd` (mesmo lugar do `/canonize`). Ele lê só `docs/canonical/CONTEXT.md` e escreve `docs/canonical/PRD-{projeto}.md`: problema, objetivo, usuários, escopo, requisitos funcionais/não-funcionais numerados, fases, riscos. Todo requisito rastreia de volta a uma frase do `CONTEXT.md` — se faltar base, ele para e aponta a lacuna em vez de supor. **A partir daqui, `docs/canonical/` (CONTEXT.md + PRD) é a ÚNICA fonte que o `/spec` deve citar** — nunca material bruto direto.
+
+> **Exemplo (bks-marine):** `/prd` geraria `docs/canonical/PRD-bks-marine.md` com os requisitos de Identidade & Acesso, Cadastros, Operações Portuárias e Relatórios já numerados, prontos para o `/spec` entrevistar sobre o primeiro bounded context.
+
+### Passo 7 — `/brain` (carregar o contexto da sessão)
+
+Sempre que você senta para trabalhar, a primeira coisa é rodar `/brain` (Claude Code aberto na **raiz do vault**, `D:\Fabio\2b-projects`). Ele lê seu perfil, o índice de memória, o contexto quente (`hot.md`) e a última nota de sessão, e te devolve em ~5 linhas quem você é, em que estava trabalhando e qual o próximo passo. É o que elimina a "amnésia" entre sessões e evita que você reexplique tudo.
 
 > **Exemplo (bks-marine):** um `/brain` hoje responderia algo como: *"Você é o Arquiteto Sênior BKS. Projeto ativo: bks-marine (backside), fase design. Última sessão: montei a estrutura e aprovamos a stack .NET 10 + Supabase. Próximo passo: revisar/aprovar o `FEAT-autenticacao` e gerar o TEST."*
 
-### Passo 6 — `/spec` (especificar a primeira feature via entrevista)
+### Passo 8 — `/spec` (especificar a primeira feature via entrevista)
 
-Aqui o gêmeo te **entrevista** sobre um bounded context — objetivos, entidades, operações (use cases), integrações e critérios de aceite verificáveis — e escreve a spec `FEAT-[nome].md` **dentro do repo do projeto**, em `specs/features/`. Rode com o Claude Code aberto na **raiz do repo** (não no `_bks-ai/`). Regra de ouro: **uma feature por vez** e **nada de código nesta etapa**. Você revisa a spec no Obsidian; ao aprovar, o gêmeo gera o `TEST-[nome].md` em `specs/tests/` com os cenários que depois viram os goals do LOOP-4.
+Aqui o gêmeo te **entrevista** sobre um bounded context — objetivos, entidades, operações (use cases), integrações e critérios de aceite verificáveis, sempre com base no `docs/canonical/PRD-*.md`/`CONTEXT.md` — e escreve a spec `FEAT-[nome].md` **dentro do repo do projeto**, em `specs/features/`. Rode com o Claude Code aberto na **raiz do repo** (não na raiz do vault). Regra de ouro: **uma feature por vez** e **nada de código nesta etapa**. Você revisa a spec no Obsidian; ao aprovar, o gêmeo gera o `TEST-[nome].md` em `specs/tests/` com os cenários que depois viram os goals do LOOP-4.
 
 > **Exemplo (bks-marine):** a entrevista da primeira feature perguntou a abordagem de autenticação, o escopo, o identificador de login e o modelo de perfis. Você respondeu **auth próprio no .NET**, **só o login**, **por e-mail** e **3 perfis** (Full, Operacional, Comum, ligados aos módulos Configuração/Operações/Relatórios via tabela Perfil↔Transação). Disso saiu o `specs/features/FEAT-autenticacao.md`: use case `AutenticarUsuario` em pipeline **Standard**, com **TXC** (`AutenticarTransaction`), Ports `IUsuarioRepository`/`IPasswordHasher`/`ITokenService`, e **7 critérios de aceite** verificáveis (ex.: "credencial inválida retorna 401 genérico, sem revelar se o e-mail existe").
 
-### Passo 7 — `/arch` (gerar a visão de arquitetura)
+### Passo 9 — `/arch` (gerar a visão de arquitetura)
 
 Com specs aprovadas, o `/arch` (também na raiz do repo) lê as specs do próprio repo e gera a **documentação de arquitetura** em `outputs/`: um `ARCH-[projeto].md` com diagramas **C4** (Contexto, Container, Componente) em Mermaid, o mapa de bounded contexts, as decisões de pipeline/SEDA e o contrato de protocolo quando houver. Você abre no Obsidian e vê os diagramas **renderizados** (o Mermaid já vem ligado). É o que dá a visão de cima antes de implementar.
 
 > **Exemplo (bks-marine):** um `/arch bks-marine` produziria um C4 de **Contexto** com o app React Native e o painel React consumindo a **API .NET 10**, que fala com o **Supabase** (Postgres + Storage); um de **Container** separando API, banco e storage de fotos; e um de **Componente** detalhando os 4 bounded contexts. E registraria explicitamente que **não há TCP** aqui — a comunicação é toda HTTPS.
 
-### Passo 8 — Git (inicializar no Windows)
+### Passo 10 — Git (inicializar no Windows)
 
 Quando a estrutura e o design estão de pé, você versiona o **repositório do projeto**. Inicialize o git **nativo no Windows** (nunca pelo ambiente Linux, que quebra permissão/encoding), na raiz do repo — **um git por projeto**, nunca um só para o vault inteiro. Sobe código, docs em markdown, specs e decisions; ficam de fora binários pesados e **segredos** (o `.gitignore` já cuida disso).
 
@@ -263,13 +321,13 @@ Quando a estrutura e o design estão de pé, você versiona o **repositório do 
 > ```
 > As chaves do Supabase (URL, anon key, service key) ficam num `.env` que o `.gitignore` já bloqueia — elas **nunca** entram num commit.
 
-### Passo 9 — `/loop` (implementar sob o protocolo LOOP-4)
+### Passo 11 — `/loop` (implementar sob o protocolo LOOP-4)
 
-Agora sim, código — e com Claude Code aberto **na raiz do repo** (não no `_bks-ai/`). O `/loop` pega uma task e implementa sob o **LOOP-4**: no máximo 4 tentativas, e a cada rodada ele roda `dotnet build; dotnet test` e audita os goals (build limpo, testes verdes, cenários do TEST cobertos, código fiel ao seu perfil). Só marca como pronto se **todos** passarem; se falhar 4 vezes, ele **para** e escreve um `BLOQUEIO-*.md` com o erro exato e a pergunta objetiva para você — em vez de insistir alucinando.
+Agora sim, código — e com Claude Code aberto **na raiz do repo** (não na raiz do vault). O `/loop` pega uma task e implementa sob o **LOOP-4**: no máximo 4 tentativas, e a cada rodada ele roda `dotnet build; dotnet test` e audita os goals (build limpo, testes verdes, cenários do TEST cobertos, código fiel ao seu perfil). Só marca como pronto se **todos** passarem; se falhar 4 vezes, ele **para** e escreve um `BLOQUEIO-*.md` com o erro exato e a pergunta objetiva para você — em vez de insistir alucinando.
 
 > **Exemplo (bks-marine):** na Autenticação, o `/loop` implementaria primeiro os testes dos cenários do `specs/tests/TEST-autenticacao.md` (estado RED), depois o `AutenticarUsuario` até os testes passarem (GREEN): validar e-mail+senha, buscar usuário, conferir o hash bcrypt, checar se está ativo, emitir o JWT e montar o menu do perfil. Goal G3 seria "os 7 critérios de aceite do FEAT cobertos"; G4, "respeita calisthenics + hexagonal".
 
-### Passo 10 — `/save` (fechar a sessão sem perder nada)
+### Passo 12 — `/save` (fechar a sessão sem perder nada)
 
 Ao terminar, o `/save` **roteia** o que aconteceu pela regra dos dois lugares: decisão sobre este projeto vira `ADR-NNN.md` em `decisions/` **do repo**; decisão sobre o workbench (rara) vai para `_bks-ai/decisions/`; specs novas/alteradas ficam em `specs/` do repo; o progresso e o próximo passo vão para `_bks-ai/memory/hot.md`; entregáveis para `outputs/` do repo; e uma nota de sessão para `_bks-ai/sessions/`. É isso que faz o próximo `/brain` te devolver exatamente onde você parou. Se for projeto ativo, registre também na tabela do `CONTEXT.md`.
 
@@ -333,7 +391,7 @@ O repositório fica no seu disco Windows; inicializar ou commitar pelo ambiente 
 1. **Frontmatter nos templates** (`FEAT.md`, `ADR.md`, ficha de projeto) para destravar Dataview — modelos prontos no Apêndice B.
 2. **Uma `HOME.md` no vault** com os dashboards do Apêndice A (features por status, ADRs recentes, projetos ativos).
 3. **Obsidian Git** no vault para versionar conhecimento e specs automaticamente.
-4. **Ficha de projeto para o Layan** — ainda falta em `brain/_bks-ai/projects/layan.md` (ver `PENDENCIAS.md`).
+4. **Ficha de projeto** para cada novo projeto — `/new-project` já cria; revise/enriqueça manualmente quando o projeto evoluir.
 
 ---
 
@@ -349,23 +407,29 @@ O repositório fica no seu disco Windows; inicializar ou commitar pelo ambiente 
 - **RPI** — Research → Plan → Implement, o ciclo de cada projeto.
 - **LOOP-4** — o protocolo de implementação: no máximo 4 tentativas, com goals verificáveis; na 5ª falha, para e gera `BLOQUEIO-*.md`.
 
-### 7.2 Comandos do workbench (`_bks-ai/.claude/commands/`)
+### 7.2 Comandos (raiz do vault + repo)
 
-São os seus comandos "do dia a dia". `/brain`, `/novo-projeto` e `/revisao` rodam com o Claude Code aberto em `brain/_bks-ai`; `/spec`, `/arch` e `/loop` rodam **na raiz do repo do projeto**.
+`/brain`, `/new-project`, `/canonize`, `/prd` e `/review` rodam com o Claude Code aberto na
+**raiz do vault** (`D:\Fabio\2b-projects`) — ponto de entrada único desde 2026-08-17. `/spec`,
+`/arch`, `/loop` e `/save` rodam **na raiz do repo do projeto**.
 
 | Comando | Onde rodar | Para que serve | Quando usar | O que produz |
 |---------|-----------|----------------|-------------|--------------|
-| `/brain` | `_bks-ai` | Carrega perfil + memória + contexto quente e resume em 5 linhas quem você é, onde parou e o próximo passo | **Início de toda sessão** | Um resumo; nenhum arquivo |
-| `/spec` | **repo** | Faz a entrevista bks-sdd de um bounded context e gera a spec da feature | Ao iniciar uma feature nova | `specs/features/FEAT-*.md` e, após aprovado, `specs/tests/TEST-*.md` (no repo) |
+| `/brain` | raiz do vault | Carrega perfil + memória + contexto quente e resume em 5 linhas quem você é, onde parou e o próximo passo | **Início de toda sessão** | Um resumo; nenhum arquivo |
+| `/new-project` | raiz do vault | Cria a estrutura canônica + wiring + ficha | Iniciar um projeto do zero | árvore em `repos/{cat}/{proj}/` + ficha em `_bks-ai/projects/` |
+| `/canonize` | raiz do vault ou repo | Consolida `docs/input/`+`docs/design/` num contexto único | Depois de reunir material de pesquisa (repetível) | `docs/canonical/CONTEXT.md` |
+| `/prd` | raiz do vault ou repo | Gera o PRD a partir do CONTEXT.md consolidado | Contexto revisado, pronto para virar requisito | `docs/canonical/PRD-{proj}.md` |
+| `/spec` | **repo** | Faz a entrevista bks-sdd de um bounded context e gera a spec da feature, com base no PRD/CONTEXT.md | Ao iniciar uma feature nova | `specs/features/FEAT-*.md` e, após aprovado, `specs/tests/TEST-*.md` (no repo) |
 | `/arch` | **repo** | Gera a visão de arquitetura a partir das specs do próprio repo | Depois de ter specs aprovadas | `outputs/ARCH-{proj}.md` (C4 em Mermaid) + `README.md` |
 | `/loop` | **repo** | Implementa a task sob LOOP-4 | Na fase de código | Código + `dotnet build`/`test` verdes; ou `outputs/BLOQUEIO-*.md` |
-| `/save` | `_bks-ai` ou repo | Roteia o resultado da sessão para os lugares certos | Ao fechar a sessão | ADR em `decisions/` (repo, ou `_bks-ai/decisions/` se for do workbench), `hot.md`, `outputs/`, nota em `sessions/` |
-| `/novo-projeto` | `_bks-ai` | Cria a estrutura canônica + wiring + ficha | Iniciar um projeto do zero | árvore em `repos/{cat}/{proj}/` + ficha em `_bks-ai/projects/` |
-| `/revisao` | `_bks-ai` | Dispara o agente `reviewer` (segregação de função) | Antes de aprovar entrega em área sensível (projeto Alto/Crítico) | achados de segurança ou OK explícito |
+| `/save` | repo ou workbench | Roteia o resultado da sessão para os lugares certos | Ao fechar a sessão | ADR em `decisions/` (repo, ou `_bks-ai/decisions/` se for do workbench), `hot.md`, `outputs/`, nota em `sessions/` |
+| `/review` | raiz do vault | Dispara o agente `reviewer` (segregação de função) | Antes de aprovar entrega em área sensível (projeto Alto/Crítico) | achados de segurança ou OK explícito |
 
 Exemplos:
 
 - `/brain` → *"Você é o Arquiteto Sênior BKS. Estamos no bks-marine, fase design. Próximo: /spec da Autenticação."*
+- `/canonize` (raiz do vault, informando bks-marine) → lê `docs/input/`+`docs/design/`, escreve `docs/canonical/CONTEXT.md`.
+- `/prd` → lê o CONTEXT.md e escreve `docs/canonical/PRD-bks-marine.md`.
 - `/spec` (no repo) → começa a entrevista: *"Qual o bounded context? Entidades? Operações? Integrações (TCP/filas/SEDA)? Critérios de aceite verificáveis?"* e escreve `specs/features/FEAT-autenticacao.md`.
 - `/arch bks-marine` (no repo) → escreve `outputs/ARCH-bks-marine.md` com os diagramas C4 que você abre no Obsidian.
 - `/loop` (no repo) → implementa a primeira task, roda build+test, audita os goals G1–G4.
@@ -409,8 +473,11 @@ Você tem **dois níveis**: o **vault/cérebro** (conhecimento e workbench, comp
 |----------------|--------------|------------|
 | **Anotações de estudo** de um tema (aprender DDD, hexagonal, etc.) | Fonte em `brain/knowledge/raw/{papers\|articles\|videos\|notes}/` → peça "ingira" → vira página em `brain/knowledge/wiki/` | `raw/` é imutável; a wiki é curada |
 | **Nota solta / ideia rápida** | `brain/notes/` ou `_bks-ai/inbox/` | Captura; depois roteia |
-| **Requisitos / escopo bruto** do projeto (docs do cliente, entrevistas, propostas) | `repos/{cat}/{proj}/docs/input/` | É o que entra "cru" para conciliar |
-| **Escopo vigente / consolidado** (a verdade atual) | `repos/{cat}/{proj}/docs/canonical/` | Fonte única do que vale hoje |
+| **Proposta/escopo/RFP do cliente** | `repos/{cat}/{proj}/docs/input/scope/` | Bruto, imutável |
+| **Entrevista, transcrição, resposta de formulário** | `repos/{cat}/{proj}/docs/input/interviews/` | Bruto, imutável |
+| **Artigo/benchmark/pesquisa externa ainda não classificada** | `repos/{cat}/{proj}/docs/input/research/` | Bruto, imutável |
+| **Print/mockup/logo/imagem de referência (material bruto)** | `repos/{cat}/{proj}/docs/input/assets/` | Bruto, imutável |
+| **Contexto consolidado + PRD** (a verdade atual) | `repos/{cat}/{proj}/docs/canonical/` | Gerado por `/canonize` e `/prd` — fonte única que o `/spec` usa |
 | **Rascunho de arquitetura/decisões** em andamento | `repos/{cat}/{proj}/docs/design/` | Bancada ativa |
 | **Decisão firmada** deste projeto (arquitetura, stack) | `repos/{cat}/{proj}/decisions/ADR-NNN.md` | Via `/save`, no repo |
 | **Decisão sobre o workbench em si** (rara) | `_bks-ai/decisions/ADR-NNN.md` | Via `/save`, no `_bks-ai` |
@@ -423,7 +490,7 @@ Você tem **dois níveis**: o **vault/cérebro** (conhecimento e workbench, comp
 | **Entregáveis do projeto** (ARCH, diagramas, BLOQUEIO) | `repos/{cat}/{proj}/outputs/` | Gerados por `/arch` e `/loop`, no repo |
 | **Nota de sessão** | `_bks-ai/sessions/sessao-YYYY-MM-DD.md` | Via `/save`, no workbench |
 
-Exemplo real (bks-marine): o escopo e a proposta foram para `docs/input/`; os mockups React para `app/mockups-app-react/`; os relatórios-modelo do navio para `brain/knowledge/`; a `FEAT-autenticacao.md` para `specs/features/`. um logotipo do cliente entraria em `app/` (ou `docs/design/assets/`); um manual técnico do porto, em `brain/knowledge/`.
+Exemplo real (bks-marine): o escopo e a proposta foram para `docs/input/scope/`; os mockups React para `app/mockups-app-react/`; os relatórios-modelo do navio para `brain/knowledge/`; a `FEAT-autenticacao.md` para `specs/features/`. Um logotipo do cliente entraria em `docs/input/assets/`; um manual técnico do porto, em `brain/knowledge/`.
 
 ### A regra dos dois lugares (para não errar)
 - **"É sobre este projeto"** (specs, ADR de stack/arquitetura, código, docs) → mora no repo dele: `repos/{cat}/{proj}/`.
@@ -462,15 +529,15 @@ dinheiro ou guarda dado regulado (seu caso no NQuantic), isso é uma lacuna real
 - **4 perfis de agente** em `_bks-ai/agents/`: `planner` (Sonnet, ≈ seu `/spec`), `builder` (Sonnet,
   ≈ seu `/loop`), **`reviewer`** (Opus, **novo** — revisão de segurança read-only, invocação
   separada), `scribe` (Haiku, ≈ parte do seu `/save`).
-- **Comando novo `/revisao`** — dispara o `reviewer` contra uma entrega, com checklist de
+- **Comando `/review`** (raiz do vault) — dispara o `reviewer` contra uma entrega, com checklist de
   segurança (`_bks-ai/references/checklist-revisao-critica.md`): auth, isolamento multi-tenant,
   idempotência por constraint, zero float em campo monetário, segredos, etc.
 - **Manifesto por projeto** (`_bks-ai/templates/manifesto-projeto.md`) — um arquivo
   `{repo}/.claude/multiagente.md` que declara: zonas de contenção (arquivos que toda mudança
   toca — `Program.cs`, migrations, ADRs), recursos numerados a reservar antes de paralelizar, e
-  áreas sensíveis que exigem `/revisao` obrigatória.
+  áreas sensíveis que exigem `/review` obrigatória.
 - **Campo `criticidade`** na ficha do projeto (`_bks-ai/projects/{projeto}.md`): `padrao` | `alto` |
-  `critico`. Só projetos **Alto**/**Crítico** exigem manifesto e `/revisao` obrigatória; em
+  `critico`. Só projetos **Alto**/**Crítico** exigem manifesto e `/review` obrigatória; em
   **Padrão** (caso do bks-marine hoje) é opcional.
 
 > Regra zero da governança, direto da fonte: **"sequencial é o padrão; paralelo é a exceção que
@@ -487,7 +554,7 @@ de função existe para capturar — e que hoje seu LOOP-4 solo, sozinho, não p
 ### Quando ativar
 Marque `criticidade: alto` (ou `critico`) na ficha do projeto, copie o
 `_bks-ai/templates/manifesto-projeto.md` para `{repo}/.claude/multiagente.md`, preencha as zonas de
-contenção e áreas sensíveis do seu domínio, e a partir daí `/revisao` passa a ser obrigatória
+contenção e áreas sensíveis do seu domínio, e a partir daí `/review` passa a ser obrigatória
 antes de aprovar entregas que tocam área sensível.
 
 > **Candidato natural:** NQuantic (w3) — já bancário, já usa TXC com dado contábil. Ainda não tem

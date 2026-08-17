@@ -21,7 +21,7 @@ TDD: teste falha (RED) → implementação mínima → teste passa (GREEN). Segu
 - **Nunca edita zona de contenção** do manifesto (`Program.cs`, wiring, migrations, índices) —
   descreve a mudança necessária; o orquestrador aplica.
 - **Nunca commita/publica.** Commit, push, deploy são decisão humana.
-- **Nunca aprova o próprio trabalho.** Mudança em área sensível do manifesto → `/revisao`
+- **Nunca aprova o próprio trabalho.** Mudança em área sensível do manifesto → `/review`
   obrigatória antes de considerar pronto.
 - **Nunca desabilita/pula/afrouxa teste** para fazer a suíte passar.
 - Decisão que fugiu da spec vira registro (ADR) — quem grava é o orquestrador, não o builder.

@@ -2,7 +2,7 @@
 
 > **Esqueleto de exemplo.** Esta pasta mostra a estrutura canônica de um projeto
 > real (specs/decisions dentro do próprio repo), mas está vazia de propósito —
-> sem escopo, sem stack, sem specs preenchidas. Use `/novo-projeto` para gerar
+> sem escopo, sem stack, sem specs preenchidas. Use `/new-project` (raiz do vault) para gerar
 > a sua versão com conteúdo real.
 
 ## Boot da sessão — carregar nesta ordem, por caminho absoluto

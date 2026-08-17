@@ -55,7 +55,8 @@ Specs e decisões de cada projeto moram **no repositório dele**, não no workbe
 │       ├── agents\              # builder / reviewer / planner / scribe
 │       ├── references\           # checklist-revisao-critica
 │       ├── outputs\, sessions\, inbox\, archive\
-│       └── .claude\commands\         # /brain /spec /arch /loop /save /novo-projeto /revisao
+│       └── .claude\commands\         # (pointers) novo-projeto -> /new-project, revisao -> /review
+├── .claude\commands\              # /brain /new-project /canonize /prd /review (raiz do vault)
 └── repos\                      # seus repositórios reais (git), um por projeto
     └── backside\bks-marine\      # ESQUELETO DE EXEMPLO — vazio de propósito
 ```
@@ -78,4 +79,6 @@ Specs e decisões de cada projeto moram **no repositório dele**, não no workbe
 2. Leia `GUIA-OBSIDIAN-CLAUDE.md` — passo a passo completo, com exemplo real.
 3. Ajuste `brain/_bks-ai/memory/user_profile.md` e `bks-premises.md` para o seu
    próprio jeito de trabalhar.
-4. Rode `/novo-projeto <nome> <categoria>` para criar seu primeiro projeto.
+4. Rode `/new-project <nome> <categoria>` (Claude Code aberto na raiz deste
+   vault) para criar seu primeiro projeto — depois `docs/input/` + `/canonize`
+   + `/prd` + `/spec`.

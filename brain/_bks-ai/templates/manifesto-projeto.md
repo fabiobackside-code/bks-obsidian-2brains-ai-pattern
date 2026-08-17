@@ -2,7 +2,7 @@
 
 Copie para `{repo}/.claude/multiagente.md` e preencha ao marcar um projeto como
 **Alto** ou **Crítico** (campo `criticidade` na ficha `_bks-ai/projects/{projeto}.md`).
-Sem manifesto preenchido, não paralelize — não delegue a `/revisao` obrigatória.
+Sem manifesto preenchido, não paralelize — não delegue a `/review` obrigatória.
 Curto de propósito: é lido em toda delegação, cada linha inútil custa token em toda sessão futura.
 
 ---
@@ -43,7 +43,7 @@ Dois agentes só ao mesmo tempo se cada um ficar inteiramente dentro de:
 - `Features/{ContextoA}/` vs `Features/{ContextoB}/` (bounded contexts distintos)
 - `FEAT-*.md`/`TEST-*.md` de features distintas em `_bks-ai/specs/`
 
-## Áreas sensíveis — revisão independente obrigatória (`/revisao`)
+## Áreas sensíveis — revisão independente obrigatória (`/review`)
 - Autenticação/autorização (`Identidade/`, JWT, RBAC)
 - Qualquer código que mova dinheiro, altere saldo ou grava contábil (TXC: `DataContabil`, `Nsu`)
 - Isolamento entre tenants/inquilinos (`InquilinoId` no TXC)
