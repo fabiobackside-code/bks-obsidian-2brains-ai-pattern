@@ -27,6 +27,13 @@ de sessão; resume em ~5 linhas quem você é, onde parou, próximo passo.
 **Onde rodar:** raiz do vault (`D:\Fabio\2b-projects`).
 **Quando:** primeira coisa de toda sessão.
 **Produz:** um resumo em texto — nenhum arquivo.
+**Exemplo:**
+```
+/brain
+→ "Você é o Arquiteto Sênior BKS. Projeto ativo: bks-marine (backside), fase design.
+   Última sessão: montei a estrutura e aprovamos a stack .NET 10 + Supabase.
+   Próximo passo: revisar/aprovar o FEAT-autenticacao e gerar o TEST."
+```
 
 ### `/new-project <nome> <categoria>`
 **Faz:** cria a estrutura canônica do projeto — `app/`, `brain/`, `specs/{features,tests,
