@@ -111,9 +111,13 @@ Pronto: `CONTEXT.md`, `brain/`, `repos/`, tudo aparece na barra lateral esquerda
 
 Decore só três: `Ctrl+O` (abrir), `Ctrl+Shift+F` (buscar), `Ctrl+P` (comandos). Com esses três você já anda rápido.
 
+> **Exemplo de uso (bks-marine):** você quer lembrar onde ficou a decisão da stack. `Ctrl+Shift+F` → digite `Supabase` → a busca lista `decisoes-abertas.md`, o `ADR-001` e o `arquitetura-macro.md`, todos com o trecho destacado. Achou o ADR? `Ctrl+O` → digite `FEAT-autenticacao` → abre a spec direto, sem navegar pasta por pasta. Quis ver como as specs desse projeto se relacionam com a wiki de conhecimento? `Ctrl+G` abre o grafo e você vê visualmente os nós de `specs/features/` puxando linhas para `brain/knowledge/wiki/`.
+
 ### 2.3 Links e backlinks — o que faz virar "cérebro"
 
 Dentro de qualquer nota, `[[nome-da-nota]]` cria um link. No rodapé do painel direito, **Backlinks** mostra quem aponta para a nota atual. Isso é o que transforma pastas soltas em rede de conhecimento.
+
+> **Exemplo passo a passo:** abra `specs/features/FEAT-autenticacao.md` e escreva a frase `Baseado em [[txc-transaction-context]]`. O Obsidian sublinha o texto como link (fica vermelho/pontilhado se a página ainda não existir, azul se já existir). Agora abra `brain/knowledge/wiki/architecture/txc-transaction-context.md` e olhe o painel **Backlinks** no rodapé direito: ele lista `FEAT-autenticacao.md` como uma das notas que apontam para ali — sem você ter feito nada além de escrever o `[[ ]]`. Repita o mesmo em `ADR-001.md` com `Afeta [[FEAT-autenticacao]]`, e agora a própria `FEAT-autenticacao.md` passa a mostrar o ADR no seu painel de Backlinks. É esse ir-e-vir automático que vira rede — não uma pasta, um grafo.
 
 Uso concreto no seu fluxo:
 - Num `FEAT-*.md` (agora dentro do repo, em `specs/features/`), linke a página da wiki que fundamentou a decisão: `Baseado em [[txc-transaction-context]]`.
@@ -134,6 +138,20 @@ Ative em **Settings → Community plugins → Browse**. Comece com poucos; adici
 | **Home tab / Dashboard++** | Uma home page do vault | Baixa |
 
 > Core plugins (nativos) que valem ligar: **Templates**, **Backlinks**, **Outline**, **Page preview**, **Command palette**. Mermaid já vem ligado.
+
+**Exemplo de uso de cada plugin de prioridade Alta/Média** (instale, ative em Community plugins, e teste assim):
+
+- **Dataview** — crie uma nota `HOME.md` na raiz e cole:
+  ````markdown
+  ```dataview
+  table status, context as "Bounded Context"
+  from "repos/backside/bks-marine/specs/features"
+  where tipo = "feat"
+  ```
+  ````
+  Salve e abra em modo leitura (`Ctrl+E`): aparece uma tabela viva com todas as `FEAT-*.md` do bks-marine e o status de cada uma — sem você montar a tabela à mão. Queries prontas para copiar: Apêndice A.
+- **Templater** — em Settings → Templater, aponte a pasta de templates para `brain/_bks-ai/templates/`. Depois, `Ctrl+P` → "Templater: Create new note from template" → escolha `FEAT.md` → ele cria a nota já com o frontmatter (`tipo: feat`, `status: rascunho`) preenchido, em vez de você copiar/colar manualmente.
+- **Obsidian Git** — em Settings → Git, ligue "Vault backup interval" para `60` (minutos) e "Commit message on backup" para algo como `backup: {{date}}`. A partir daí, a cada hora o plugin roda `git add . && git commit` sozinho sobre o vault inteiro — seu conhecimento fica versionado sem você lembrar de commitar.
 
 ### 2.5 Frontmatter — o que destrava os painéis
 
@@ -156,9 +174,13 @@ Com isso, o Dataview monta sozinho a tabela de todas as features do projeto e se
 ### 2.6 Rotina de fluência (2 semanas, 10 min/dia)
 
 - **Dia 1–2:** abrir o vault, navegar com `Ctrl+O`, ler o `CONTEXT.md` e 2 páginas da `knowledge/wiki/`.
+  > *O que você deve conseguir fazer ao final:* abrir `CONTEXT.md` sem usar o mouse — só `Ctrl+O` + digitar "context" + Enter.
 - **Dia 3–4:** criar uma nota em `brain/notes/`, linkar (`[[ ]]`) para uma página da wiki, ver o backlink aparecer.
+  > *Exemplo:* crie `brain/notes/estudo-hexagonal.md`, escreva `Ver também [[hexagonal-architecture]]` e confirme no painel Backlinks da página da wiki que sua nota nova apareceu listada lá — é o mesmo mecanismo do exemplo da seção 2.3.
 - **Dia 5–6:** instalar Dataview + Templater; colar um dashboard do Apêndice A numa nota `HOME.md`.
+  > *O que você deve ver ao final:* abrir `HOME.md` em modo leitura e enxergar uma tabela viva com as features do bks-marine (não um bloco de código cru) — sinal de que o Dataview está processando a query.
 - **Semana 2:** rodar um projeto de verdade (o bks-marine) e usar o Obsidian só para **ler** o que o Claude Code escreve — specs, ADRs, o ARCH com diagrama. A fluência vem do uso real, não de estudar o app.
+  > *Exemplo:* depois de um `/spec` no terminal, abra `specs/features/FEAT-autenticacao.md` no Obsidian — não no editor de texto — e confirme que os `[[ ]]` que o Claude escreveu já aparecem clicáveis e o Mermaid do `/arch` renderiza como diagrama, não como texto bruto.
 
 ---
 
@@ -388,10 +410,10 @@ O repositório fica no seu disco Windows; inicializar ou commitar pelo ambiente 
 
 ## 6. Upgrades sugeridos (opcionais, para fluência)
 
-1. **Frontmatter nos templates** (`FEAT.md`, `ADR.md`, ficha de projeto) para destravar Dataview — modelos prontos no Apêndice B.
-2. **Uma `HOME.md` no vault** com os dashboards do Apêndice A (features por status, ADRs recentes, projetos ativos).
-3. **Obsidian Git** no vault para versionar conhecimento e specs automaticamente.
-4. **Ficha de projeto** para cada novo projeto — `/new-project` já cria; revise/enriqueça manualmente quando o projeto evoluir.
+1. **Frontmatter nos templates** (`FEAT.md`, `ADR.md`, ficha de projeto) para destravar Dataview — modelos prontos no Apêndice B. *Exemplo:* copie o bloco YAML do Apêndice B para o topo de uma `FEAT-*.md` existente que ainda não tem `status:` e veja ela passar a aparecer na tabela do Apêndice A.
+2. **Uma `HOME.md` no vault** com os dashboards do Apêndice A (features por status, ADRs recentes, projetos ativos). *Exemplo:* crie `HOME.md` na raiz do vault, cole os três blocos ```dataview``` do Apêndice A, e fixe essa nota como a primeira que abre (`Ctrl+P` → "Open Home tab" → aponte para `HOME.md`).
+3. **Obsidian Git** no vault para versionar conhecimento e specs automaticamente. *Exemplo:* mesmo passo a passo da seção 2.4 — Settings → Git → "Vault backup interval" = `60` — só que aplicado ao vault inteiro (`D:\Fabio\2b-projects`), não a um repo de projeto isolado.
+4. **Ficha de projeto** para cada novo projeto — `/new-project` já cria; revise/enriqueça manualmente quando o projeto evoluir. *Exemplo:* depois que o bks-marine sair do design e entrar em implementação, abra `_bks-ai/projects/bks-marine.md` e mude `status: design` para `status: implementacao` — é esse campo que a tabela "Projetos ativos" do Apêndice A lê.
 
 ---
 
@@ -455,6 +477,40 @@ O `/spec` do workbench é uma versão **enxuta** do bks-sdd: vai direto ao `FEAT
 | `/help-workspace` | — | Explica o papel de cada pasta do workspace |
 
 Regras de bloqueio da skill (garantem qualidade): `--feature-tests` só roda com FEAT aprovado; `--feature-task` só roda com TEST aprovado. Não dá para pular etapas.
+
+**Exemplo de uso encadeado** (produto grande, hipotético — "acme-pay"):
+```
+/bks-sdd
+→ cria workspace-acme-pay/ com research/, plan/, projects/, .states/, .logs/
+
+/bks-sdd --prd
+→ lê workspace-acme-pay/research/ e escreve workspace-acme-pay/PRD.md
+
+/bks-sdd --project
+→ "Qual o nome do projeto interno?" — pagamentos-core
+→ coleta a stack: .NET 10 + PostgreSQL
+
+/bks-sdd --project-plan
+→ gera PLAN-pagamentos-core.md com 3 fases e a lista de features de cada uma
+
+/bks-sdd --feature
+→ gera FEAT-cobranca-pix.md (uma feature por vez, igual ao /spec)
+
+/bks-sdd --feature-tests
+→ (com a FEAT já aprovada) gera TEST-cobranca-pix.md com os cenários Gherkin
+
+/bks-sdd --feature-task
+→ (com o TEST já aprovado) quebra em TASK-01-RED.md / TASK-01-GREEN.md, prontas para o /loop
+
+/bks-sdd --feature-list
+→ mostra uma tabela: cobranca-pix (FEAT aprovada, TEST aprovado, 3/5 tasks concluídas), próxima-feature (rascunho)
+
+/bks-sdd --continue
+→ (numa sessão nova) retoma exatamente de onde parou, lendo .states/
+
+/bks-sdd --tan
+→ salva o estado atual e encerra com segurança antes de fechar o terminal
+```
 
 ### 7.4 Qual usar: `/spec` (workbench) ou `bks-sdd` (skill)?
 
