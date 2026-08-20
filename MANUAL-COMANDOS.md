@@ -144,7 +144,8 @@ do TEST cobertos, código fiel ao `user_profile.md`). Falhou 4x → gera `BLOQUE
 `{repo}/decisions/ADR-NNN.md`; decisão sobre o workbench (rara) → `brain/_bks-ai/decisions/ADR-NNN.md`;
 specs novas/alteradas → `{repo}/specs/`; progresso → `brain/_bks-ai/memory/hot.md`; entregáveis →
 `{repo}/outputs/`; nota de sessão → `brain/_bks-ai/sessions/sessao-YYYY-MM-DD.md`.
-**Onde rodar:** `brain/_bks-ai` ou o repo — funciona nos dois.
+**Onde rodar:** raiz do repo do projeto (global — roda de qualquer cwd, mas os caminhos
+relativos de `decisions/`, `specs/` e `outputs/` resolvem contra o repo onde a sessão está).
 **Quando:** ao fechar a sessão, ou após qualquer marco (feature aprovada, task concluída).
 **Produz:** os arquivos acima, listados no chat antes de finalizar.
 **Exemplo:**
@@ -159,7 +160,8 @@ specs novas/alteradas → `{repo}/specs/`; progresso → `brain/_bks-ai/memory/h
 direto) ou um LOTE (`tools/batch-ingest.md`, ou a pasta inteira `raw/_inbox/`) para dentro da
 wiki curada, com frontmatter YAML padronizado.
 **Onde rodar:** `brain/knowledge` (Claude Code aberto ali — **não** dentro de `brain/_bks-ai` nem do
-repo de um projeto).
+repo de um projeto). É o **único comando que não é global**, e de propósito: ele grava em
+`wiki/`, `index.md` e `log.md` relativos a essa pasta. Ver seção 4.
 **Escopo — não confundir:** este comando alimenta **seu** conhecimento técnico pessoal
 (compartilhado entre todos os projetos). Material de domínio de UM projeto específico não passa
 por aqui — vai direto para `repos/{cat}/{proj}/brain/` (organizado à mão, ou com um `/ingest`
@@ -247,7 +249,60 @@ rastro de TASKS com memória de sessão (`workspace-*`); use `/spec` quando já 
 
 ---
 
-## 4. Tabela-resumo (cola rápida)
+## 4. Onde cada comando mora (mapa de arquivos)
+
+Claude Code resolve comandos de dois escopos, e nesta ordem:
+
+1. **Project scope** — `.claude/commands/` da pasta onde a sessão foi aberta (cwd).
+2. **User scope (global)** — `C:\Users\fabio\.claude\commands\`.
+
+Project vence quando os dois têm o mesmo nome. Só isso: **não há herança de pasta pai** —
+abrir sessão em `repos/backside/poc-sec-sdk/` não enxerga o `.claude/commands/` da raiz do
+vault. Foi exatamente essa a causa do `/brain` "sumir" quando você abria sessão dentro do repo
+de um projeto.
+
+### Layout atual (revisado 2026-08-20)
+
+| Pasta | Comandos | Por que fica aqui |
+|---|---|---|
+| `C:\Users\fabio\.claude\commands\` | `brain` · `new-project` · `canonize` · `prd` · `review` · `spec` · `arch` · `loop` · `save` · `CLAUDE-TESTS` | Global. Todo comando do fluxo principal vive aqui, então funciona de qualquer cwd. |
+| `D:\Fabio\2b-projects\.claude\commands\` | `brain` · `new-project` · `canonize` · `prd` · `review` | Cópia idêntica à global. Tem precedência quando a sessão abre na raiz do vault; é também o que o repo de export publica. |
+| `D:\Fabio\2b-projects\brain\knowledge\.claude\commands\` | `ingest` | **Fica local de propósito.** Grava em `wiki/`, `index.md` e `log.md` relativos a `brain/knowledge` — só faz sentido com a sessão aberta ali. Absolutizar mudaria a semântica, não só o caminho. |
+
+### O que foi removido em 2026-08-20
+
+`brain/_bks-ai/.claude/commands/` deixou de existir. Continha sete arquivos, todos redundantes:
+
+- `novo-projeto.md`, `revisao.md` — stubs que só diziam "foi renomeado, use `/new-project`
+  e `/review`". Serviam de ponte durante a migração de 2026-08-17; com os novos nomes já
+  globais, a ponte virou ruído.
+- `arch.md`, `loop.md`, `save.md`, `spec.md` — duplicatas exatas das versões globais, porém
+  com caminho relativo (`brain/_bks-ai/templates/FEAT.md` em vez de absoluto). Ou seja: a
+  cópia pior de um comando que já funcionava em todo lugar.
+- `brain.md` — variante que existia só para cobrir "e se a sessão estiver aberta em
+  `_bks-ai`". O `/brain` global cobre esse caso e todos os outros.
+
+`brain/_bks-ai/.claude/skills/` **não** foi tocado — continua no lugar.
+
+### Regra prática ao criar um comando novo
+
+Comando que opera sobre caminhos fixos do vault (memória, templates, agentes, fichas de
+projeto): escreva o caminho **absoluto** e ponha em global — roda de qualquer lugar.
+
+Comando que opera sobre o cwd (o repo do projeto, a wiki): mantenha os caminhos **relativos**
+e ponha em global mesmo assim, mas documente onde rodar. `/spec`, `/arch` e `/loop` são
+globais e escrevem em `specs/`, `outputs/` do repo onde a sessão está — é o comportamento
+desejado.
+
+Comando cujo cwd **é** o dado (como `/ingest`): deixe local, na pasta sobre a qual ele opera.
+
+> Ao editar um comando que tem cópia no vault e no global, replique nos dois — a sincronia é
+> manual. Conferir com:
+> `diff -q C:/Users/fabio/.claude/commands/brain.md D:/Fabio/2b-projects/.claude/commands/brain.md`
+
+---
+
+## 5. Tabela-resumo (cola rápida)
 
 | Comando | Onde rodar | Pré-requisito | Produz |
 |---|---|---|---|
@@ -258,6 +313,7 @@ rastro de TASKS com memória de sessão (`workspace-*`); use `/spec` quando já 
 | `/spec` | **repo** (global) | PRD/CONTEXT.md | `specs/features/FEAT-*` → `specs/tests/TEST-*` |
 | `/arch` | **repo** (global) | specs aprovadas | `outputs/ARCH-*` (C4) + README |
 | `/loop` | **repo** (global) | FEAT+TEST aprovados | código + testes ou `outputs/BLOQUEIO-*` |
-| `/save` | repo ou workbench | — | `decisions/ADR-*`, `hot.md`, `outputs/`, sessão |
-| `/ingest` | `brain/knowledge` | fonte ou lote | página(s) em `wiki/`, `index.md`, `log.md` |
+| `/save` | **repo** (global) | — | `decisions/ADR-*`, `hot.md`, `outputs/`, sessão |
+| `/ingest` | `brain/knowledge` (**local**) | fonte ou lote | página(s) em `wiki/`, `index.md`, `log.md` |
 | `/review` | qualquer cwd (global) | manifesto preenchido | achados de segurança ou OK |
+| `/CLAUDE-TESTS` | **repo** (global) | solution .NET | projeto xUnit único em `src/` + cobertura 90%+ |
