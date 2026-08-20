@@ -1,3 +1,5 @@
+NOTA (versao global): este comando opera sobre o vault em D:/Fabio/2b-projects/. Todos os caminhos abaixo sao absolutos de proposito — funciona rodando de qualquer cwd. Se voce nao estiver dentro do repo do projeto alvo, PERGUNTE qual projeto antes de agir.
+
 Gera um PRD inicial a partir do contexto canônico já consolidado — é a ponte entre /canonize e
 /spec.
 

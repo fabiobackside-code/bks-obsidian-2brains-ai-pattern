@@ -1,8 +1,10 @@
+NOTA (versao global): este comando opera sobre o vault em D:/Fabio/2b-projects/. Todos os caminhos abaixo sao absolutos de proposito — funciona rodando de qualquer cwd. Se voce nao estiver dentro do repo do projeto alvo, PERGUNTE qual projeto antes de agir.
+
 Consolida o material de pesquisa (docs/input/ + docs/design/) de UM projeto em um contexto
 canônico único — a fonte que vai alimentar o /prd e, depois, o /spec.
 
 Este comando pode rodar aberto na raiz do vault (pergunte QUAL projeto,
-repos/{categoria}/{projeto}) ou já dentro do repo do projeto (aí o projeto é óbvio, não
+D:/Fabio/2b-projects/repos/{categoria}/{projeto}) ou já dentro do repo do projeto (aí o projeto é óbvio, não
 pergunte).
 
 Pré-requisito: o projeto existe (foi criado com /new-project) e tem algo em docs/input/ e/ou

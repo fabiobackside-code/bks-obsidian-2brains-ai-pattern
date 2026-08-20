@@ -1,6 +1,6 @@
 ---
 tipo: manual
-atualizado: 2026-08-17
+atualizado: 2026-08-20
 ---
 # Manual de Comandos — 2b-projects
 
@@ -8,23 +8,32 @@ Referência única de todo comando disponível no seu workbench: o que faz, quan
 produz, e um exemplo real. Complementa o `GUIA-OBSIDIAN-CLAUDE.md` (que explica o fluxo geral) —
 este arquivo é para consulta rápida durante o trabalho.
 
-Convenção (revisada 2026-08-17): `/brain`, `/new-project`, `/canonize`, `/prd` e `/review` rodam
-com o Claude Code aberto na **raiz do vault** (`D:\Fabio\2b-projects`) — é o único lugar onde
-você precisa abrir sessão para retomar, começar um projeto novo, ou consolidar pesquisa em
-contexto/PRD. `/spec`, `/arch`, `/loop` e `/save` rodam **na raiz do repo** do projeto — só
-entra lá quando for de fato especificar ou codar.
+Convenção (revisada 2026-08-20): `/brain`, `/new-project`, `/canonize`, `/prd` e `/review`
+agora são **globais** — foram copiados para `C:\Users\fabio\.claude\commands\` com os caminhos
+do vault absolutizados, então rodam de **qualquer cwd**, inclusive de dentro do repo de um
+projeto. As cópias originais continuam em `D:\Fabio\2b-projects\.claude\commands\` e têm
+precedência quando você abre sessão na raiz do vault (project scope > user scope).
 
-> Nomes antigos (`/novo-projeto`, `/revisao`) foram renomeados para inglês e movidos para a
-> raiz do vault; se você digitar o nome antigo em `_bks-ai`, ele aponta pro novo.
+Quando rodar um desses de fora do repo alvo, o comando **pergunta qual projeto** em vez de
+adivinhar. `/spec`, `/arch`, `/loop` e `/save` continuam na **raiz do repo** do projeto — não
+por escopo de arquivo (também são globais), mas porque operam sobre `specs/`, `outputs/` e o
+build do repo onde a sessão está aberta.
+
+> Manter as duas cópias em sincronia é manual: ao editar um comando, replique no outro lado.
+> Os arquivos são idênticos exceto pelos caminhos absolutos e pela nota de cwd no topo de
+> `/new-project`, `/canonize` e `/prd`.
+
+> Nomes antigos (`/novo-projeto`, `/revisao`) foram renomeados para inglês; se você digitar o
+> nome antigo em `brain/_bks-ai`, ele aponta pro novo.
 
 ---
 
-## 0. Comandos da raiz do vault (ponto de entrada único)
+## 0. Comandos globais de entrada (rodam de qualquer cwd)
 
 ### `/brain`
 **Faz:** carrega `memory/user_profile.md` + `memory/MEMORY.md` + `memory/hot.md` + última nota
 de sessão; resume em ~5 linhas quem você é, onde parou, próximo passo.
-**Onde rodar:** raiz do vault (`D:\Fabio\2b-projects`).
+**Onde rodar:** qualquer cwd (global). Na raiz do vault usa a cópia local.
 **Quando:** primeira coisa de toda sessão.
 **Produz:** um resumo em texto — nenhum arquivo.
 **Exemplo:**
@@ -40,15 +49,15 @@ de sessão; resume em ~5 linhas quem você é, onde parou, próximo passo.
 tasks}/`, `decisions/`, `outputs/`, `docs/input/{scope,interviews,research,assets}/`,
 `docs/design/`, `docs/canonical/`, `docs/prompts/`, `docs/history/` — mais `CLAUDE.md`,
 `README.md` (com exemplos de prompt), `HOW-TO-WORK.md`, `.gitignore`, e a ficha em
-`_bks-ai/projects/`.
-**Onde rodar:** raiz do vault.
+`brain/_bks-ai/projects/`.
+**Onde rodar:** qualquer cwd (global) — se não estiver no repo alvo, ele pergunta o projeto.
 **Quando:** iniciar um projeto do zero. É o **único** comando de criação — substitui o antigo
 `/novo-projeto`.
-**Produz:** árvore completa em `repos/{categoria}/{nome}/` + `_bks-ai/projects/{nome}.md`.
+**Produz:** árvore completa em `repos/{categoria}/{nome}/` + `brain/_bks-ai/projects/{nome}.md`.
 **Exemplo:**
 ```
 /new-project bks-marine backside
-→ cria repos/backside/bks-marine/... e _bks-ai/projects/bks-marine.md; próximo passo sugerido:
+→ cria repos/backside/bks-marine/... e brain/_bks-ai/projects/bks-marine.md; próximo passo sugerido:
   "traga material para docs/input/ e rode /canonize"
 ```
 
@@ -57,7 +66,7 @@ tasks}/`, `decisions/`, `outputs/`, `docs/input/{scope,interviews,research,asset
 `docs/canonical/CONTEXT.md` (com frontmatter versionado, fontes citadas, e
 `> [!uncertain]` nas divergências — nunca inventa para fechar lacuna). Se já existir um
 CONTEXT.md, arquiva a versão anterior em `docs/history/` antes de sobrescrever.
-**Onde rodar:** raiz do vault (informe o projeto) ou já dentro do repo dele.
+**Onde rodar:** qualquer cwd (global) — informe o projeto se não estiver dentro do repo dele.
 **Quando:** depois de acumular material de pesquisa suficiente, e sempre que adicionar material
 novo relevante (rodar de novo é normal e esperado).
 **Produz:** `docs/canonical/CONTEXT.md` + `docs/prompts/prompt-canonize-*.md`.
@@ -72,7 +81,7 @@ novo relevante (rodar de novo é normal e esperado).
 **Faz:** lê `docs/canonical/CONTEXT.md` e gera `docs/canonical/PRD-{projeto}.md` — Problema,
 Objetivo, Usuários, Escopo, Requisitos funcionais/não-funcionais, Fases, Riscos. Todo requisito
 rastreia de volta ao CONTEXT.md; nunca inventa requisito sem base nele.
-**Onde rodar:** raiz do vault (informe o projeto) ou já dentro do repo dele.
+**Onde rodar:** qualquer cwd (global) — informe o projeto se não estiver dentro do repo dele.
 **Pré-requisito:** `docs/canonical/CONTEXT.md` já existe (rodou `/canonize` antes).
 **Quando:** contexto já revisado, pronto para virar requisito formal — a partir daqui, `/spec`
 só cita `docs/canonical/`.
@@ -92,7 +101,7 @@ só cita `docs/canonical/`.
 **Faz:** entrevista bks-sdd sobre um bounded context (entidades, operações, integrações,
 critérios de aceite verificáveis); gera a `FEAT-[nome].md`. Depois de aprovada, gera a
 `TEST-[nome].md`.
-**Onde rodar:** **raiz do repo do projeto** (não mais em `_bks-ai`).
+**Onde rodar:** **raiz do repo do projeto** (não mais em `brain/_bks-ai`).
 **Quando:** especificar uma feature nova. Uma por vez — nunca implementa aqui.
 **Produz:** `{repo}/specs/features/FEAT-*.md` e, após aprovação, `{repo}/specs/tests/TEST-*.md`.
 **Exemplo real (já feito no bks-marine):**
@@ -132,10 +141,10 @@ do TEST cobertos, código fiel ao `user_profile.md`). Falhou 4x → gera `BLOQUE
 
 ### `/save`
 **Faz:** roteia o resultado da sessão pela regra dos dois lugares — decisão sobre o projeto →
-`{repo}/decisions/ADR-NNN.md`; decisão sobre o workbench (rara) → `_bks-ai/decisions/ADR-NNN.md`;
-specs novas/alteradas → `{repo}/specs/`; progresso → `_bks-ai/memory/hot.md`; entregáveis →
-`{repo}/outputs/`; nota de sessão → `_bks-ai/sessions/sessao-YYYY-MM-DD.md`.
-**Onde rodar:** `_bks-ai` ou o repo — funciona nos dois.
+`{repo}/decisions/ADR-NNN.md`; decisão sobre o workbench (rara) → `brain/_bks-ai/decisions/ADR-NNN.md`;
+specs novas/alteradas → `{repo}/specs/`; progresso → `brain/_bks-ai/memory/hot.md`; entregáveis →
+`{repo}/outputs/`; nota de sessão → `brain/_bks-ai/sessions/sessao-YYYY-MM-DD.md`.
+**Onde rodar:** `brain/_bks-ai` ou o repo — funciona nos dois.
 **Quando:** ao fechar a sessão, ou após qualquer marco (feature aprovada, task concluída).
 **Produz:** os arquivos acima, listados no chat antes de finalizar.
 **Exemplo:**
@@ -149,7 +158,7 @@ specs novas/alteradas → `{repo}/specs/`; progresso → `_bks-ai/memory/hot.md`
 **Faz:** ingere UMA fonte (PDF, artigo `.md`, página `.html` salva, transcrição de vídeo, link
 direto) ou um LOTE (`tools/batch-ingest.md`, ou a pasta inteira `raw/_inbox/`) para dentro da
 wiki curada, com frontmatter YAML padronizado.
-**Onde rodar:** `brain/knowledge` (Claude Code aberto ali — **não** dentro de `_bks-ai` nem do
+**Onde rodar:** `brain/knowledge` (Claude Code aberto ali — **não** dentro de `brain/_bks-ai` nem do
 repo de um projeto).
 **Escopo — não confundir:** este comando alimenta **seu** conhecimento técnico pessoal
 (compartilhado entre todos os projetos). Material de domínio de UM projeto específico não passa
@@ -177,18 +186,18 @@ Detalhamento completo (todos os tipos de fonte, exemplo de lote): seção 10 do
 
 Adaptados do repositório `bks-multiagent-skill` (DiegoAmorimDev, MIT) para o vocabulário BKS.
 Ativam quando um projeto é marcado **Alto** ou **Crítico** (campo `criticidade` na ficha
-`_bks-ai/projects/{projeto}.md`). Em projeto **Padrão** (ex.: bks-marine hoje), são opcionais.
+`brain/_bks-ai/projects/{projeto}.md`). Em projeto **Padrão** (ex.: bks-marine hoje), são opcionais.
 
 ### `/review`
 **Faz:** dispara o agente `reviewer` (Opus, read-only) em **invocação separada** de quem
-implementou, aplicando `_bks-ai/references/checklist-revisao-critica.md` contra a entrega. Nunca
+implementou, aplicando `brain/_bks-ai/references/checklist-revisao-critica.md` contra a entrega. Nunca
 quem escreveu o código revisa a si mesmo — segregação de função.
-**Onde rodar:** raiz do vault (informe qual repo revisar — avalia entrega de qualquer repo).
+**Onde rodar:** qualquer cwd (global) — informe qual repo revisar; avalia entrega de qualquer repo.
 **Quando:** antes de aprovar qualquer entrega que toca uma "área sensível" declarada no manifesto
 do projeto (`{repo}/.claude/multiagente.md`) — auth, dinheiro, dado regulado, isolamento
 multi-tenant, webhook.
 **Pré-requisito:** o projeto precisa ter `{repo}/.claude/multiagente.md` preenchido a partir de
-`_bks-ai/templates/manifesto-projeto.md`. Sem manifesto, `/review` orienta a criar um antes.
+`brain/_bks-ai/templates/manifesto-projeto.md`. Sem manifesto, `/review` orienta a criar um antes.
 **Produz:** lista de achados (`arquivo:linha`, problema, exploração, severidade) ou declaração
 explícita do escopo verificado, se nada foi encontrado.
 **Exemplo (cenário hipotético, adaptado do exemplo-fintech do repo original):**
@@ -201,7 +210,7 @@ explícita do escopo verificado, se nada foi encontrado.
 → bloqueia a entrega; correção vai para o builder, em invocação separada
 ```
 
-### Os 4 perfis (`_bks-ai/agents/`) — como se relacionam com o que você já usa
+### Os 4 perfis (`brain/_bks-ai/agents/`) — como se relacionam com o que você já usa
 | Perfil novo | Equivale a | O que ele acrescenta |
 |---|---|---|
 | `planner` (Sonnet) | seu `/spec` | vínculo formal ao log de decisões antes de propor |
@@ -213,8 +222,8 @@ Ordem dentro de uma entrega: `planner → builder → reviewer → scribe` — s
 **nunca** rodam em paralelo entre si.
 
 ### Como ativar num projeto
-1. Marcar `criticidade: alto` ou `criticidade: critico` na ficha `_bks-ai/projects/{projeto}.md`.
-2. Copiar `_bks-ai/templates/manifesto-projeto.md` para `{repo}/.claude/multiagente.md` e preencher:
+1. Marcar `criticidade: alto` ou `criticidade: critico` na ficha `brain/_bks-ai/projects/{projeto}.md`.
+2. Copiar `brain/_bks-ai/templates/manifesto-projeto.md` para `{repo}/.claude/multiagente.md` e preencher:
    zonas de contenção, recursos numerados, áreas sensíveis, invariantes do domínio.
 3. A partir daí, `/review` é obrigatório antes de aprovar entrega em área sensível.
 
@@ -242,13 +251,13 @@ rastro de TASKS com memória de sessão (`workspace-*`); use `/spec` quando já 
 
 | Comando | Onde rodar | Pré-requisito | Produz |
 |---|---|---|---|
-| `/brain` | raiz do vault | — | resumo da sessão |
-| `/new-project` | raiz do vault | nome + categoria | estrutura + wiring + ficha |
-| `/canonize` | raiz do vault ou repo | `docs/input/`/`docs/design/` com material | `docs/canonical/CONTEXT.md` |
-| `/prd` | raiz do vault ou repo | `CONTEXT.md` consolidado | `docs/canonical/PRD-*.md` |
-| `/spec` | **repo** | PRD/CONTEXT.md | `specs/features/FEAT-*` → `specs/tests/TEST-*` |
-| `/arch` | **repo** | specs aprovadas | `outputs/ARCH-*` (C4) + README |
-| `/loop` | **repo** | FEAT+TEST aprovados | código + testes ou `outputs/BLOQUEIO-*` |
+| `/brain` | qualquer cwd (global) | — | resumo da sessão |
+| `/new-project` | qualquer cwd (global) | nome + categoria | estrutura + wiring + ficha |
+| `/canonize` | qualquer cwd (global) | `docs/input/`/`docs/design/` com material | `docs/canonical/CONTEXT.md` |
+| `/prd` | qualquer cwd (global) | `CONTEXT.md` consolidado | `docs/canonical/PRD-*.md` |
+| `/spec` | **repo** (global) | PRD/CONTEXT.md | `specs/features/FEAT-*` → `specs/tests/TEST-*` |
+| `/arch` | **repo** (global) | specs aprovadas | `outputs/ARCH-*` (C4) + README |
+| `/loop` | **repo** (global) | FEAT+TEST aprovados | código + testes ou `outputs/BLOQUEIO-*` |
 | `/save` | repo ou workbench | — | `decisions/ADR-*`, `hot.md`, `outputs/`, sessão |
 | `/ingest` | `brain/knowledge` | fonte ou lote | página(s) em `wiki/`, `index.md`, `log.md` |
-| `/review` | raiz do vault | manifesto preenchido | achados de segurança ou OK |
+| `/review` | qualquer cwd (global) | manifesto preenchido | achados de segurança ou OK |
