@@ -6,6 +6,7 @@ Ler SEMPRE no início (via /brain): user_profile.md, este índice e hot.md.
 - bks-premises.md — COMO gerar código (fonte de verdade: skills BKS + TXC + pragmatismo)
 - dotnet-standards.md — estruturas hexagonal BKS Single/MultiProject
 - calisthenics.md — regras de qualidade com exemplos C#
+- documentacao.md — comentário mínimo no código; README.md e ARCHITECTURE.md gerados a cada tarefa (com ou sem bks-sdd)
 - seda-tcp.md — decisões de SEDA e protocolo TCP
 - knowledge-base.md — como consultar o cérebro de conhecimento (wiki de estudo)
 - hot.md — contexto da próxima sessão (efêmero)

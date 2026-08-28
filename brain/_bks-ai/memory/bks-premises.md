@@ -45,9 +45,51 @@ como cerimônia obrigatória:
 > Regra prática: se uma abstração não reduz complexidade essencial nem risco
 > real, ela é complexidade acidental. Corte.
 
+## Legado .NET Framework 4.7.0 / .NET Core 2.1
+
+Green field é sempre **.NET 10**. Quando o contexto obriga o legado, o padrão-base
+continua valendo (Hexagonal, TXC, Pipeline, Result) — muda só a tecnologia de borda.
+
+**Stack prescrita no 4.7.0 (não é opção, é o default do legado):**
+- **Serviços expostos: WCF SOAP Services.** Contrato por `[ServiceContract]` /
+  `[OperationContract]`; DTOs em `[DataContract]` / `[DataMember]`. O `.svc` e o WCF
+  são **Adapter Inbound** — o contrato SOAP nunca vaza para o domínio: o adapter
+  traduz o request no TXC e devolve o `Result<T>` mapeado. Sem regra de negócio
+  dentro da classe de serviço.
+- **Processos de background: Worker Service hospedado com TopShelf.** Um único
+  executável console que roda como Windows Service (`Service.Install` /
+  `Service.Uninstall`) e depura como console. `TopShelf` é só host — o `Start`/`Stop`
+  aciona a mesma pipeline do domínio, nada de lógica no ponto de entrada.
+- **Concorrência e estado no worker: Akka.NET.** Ator por unidade de estado; supervisão
+  para reinicializar o ramo que falhou; mailbox no lugar de lock manual. Os atores são
+  **infraestrutura de concorrência**, não o domínio — o ator recebe a mensagem, monta
+  o TXC e chama a pipeline; a regra permanece testável sem `ActorSystem`.
+
+**O que cai no 4.7.0 e o substituto:**
+
+| No .NET 10 | No 4.7.0 |
+|---|---|
+| Minimal API | WCF SOAP (ou Web API 2 / OWIN quando o contrato for REST) |
+| `record` | classe imutável (campos `readonly`, construtor completo, sem setter) |
+| DI nativa (`IServiceCollection`) | container do host (Autofac / Unity) no Composition Root |
+| `System.Text.Json` | `Newtonsoft.Json` (ou `DataContractSerializer` no caminho SOAP) |
+| `IHostedService` / `BackgroundService` | TopShelf + Akka.NET |
+| `IAsyncEnumerable` | `IEnumerable` + paginação explícita, ou TPL Dataflow |
+
+> .NET Core 2.1 fica no meio: já tem DI nativa e `IHostedService`, **não tem** WCF
+> server-side nem `record`. Tratar como .NET moderno com C# 7.3 — alvo de migração,
+> não de projeto novo.
+
 ## Idioma do código
 Inglês por padrão. **Exceção por projeto quando o repo definir** (ex.: NQuantic
 usa pt-BR sem acentos). O `REPO-CLAUDE.md` de cada projeto manda.
+
+## Comentário e documentação externa
+Comentário no código é exceção, não regra: resumo de 1 linha em classe/método público
+(`/// <summary>`, JSDoc, docstring) — nunca bloco explicando decisão ou histórico. Decisão
+arquitetural, trade-off e dicionário de classes/funções vivem em `README.md` (visão geral)
+e `ARCHITECTURE.md` (dicionário técnico + ADRs), gerados/atualizados a cada tarefa de
+código — com ou sem bks-sdd. Detalhe em `documentacao.md`.
 
 ## Antes de gerar
 Rodar a entrevista da skill BKS aplicável; consultar a wiki e CITAR a página;
